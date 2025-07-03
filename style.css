@@ -1,0 +1,173 @@
+/* General styles for body and basic layout */
+body {
+    font-family: sans-serif; /* Placeholder font */
+    margin: 0;
+    line-height: 1.6;
+    color: #333; /* Placeholder color */
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header {
+    background-color: #f4f4f4; /* Placeholder background */
+    padding: 10px 0;
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+nav ul li {
+    margin-left: 20px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #333; /* Placeholder color */
+}
+
+/* Hero section styles */
+#hero {
+    background-color: #e2e2e2; /* Placeholder background */
+    padding: 50px 0;
+    text-align: center;
+}
+
+#hero h2 {
+    margin-top: 0;
+    font-size: 2.5em;
+}
+
+/* Section styles */
+section {
+    padding: 20px 0;
+}
+
+section h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+
+/* Projects, Work Experience, Education sections layout */
+#projects .container,
+#work-experience .container,
+#education .container {
+    display: grid;
+    gap: 20px;
+}
+
+/* Mobile first layout (single column) */
+#projects .project-list,
+#work-experience .work-list,
+#education .education-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.project-item, .work-item, .education-item {
+    border: 1px solid #ccc; /* Placeholder border */
+    padding: 15px;
+}
+
+/* Reviews section layout */
+#reviews .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.review-item {
+    border: 1px solid #ccc; /* Placeholder border */
+    padding: 15px;
+    width: 100%; /* Full width on mobile */
+    max-width: 300px; /* Limit width for larger screens */
+}
+
+.review-item p {
+    font-style: italic;
+}
+
+.review-item strong {
+    display: block;
+    margin-top: 10px;
+}
+
+/* Footer styles */
+footer {
+    background-color: #333; /* Placeholder background */
+    color: #fff; /* Placeholder color */
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+}
+
+/* Responsive styles for larger screens (Desktop mockup) */
+@media (min-width: 768px) {
+    #hero h2 {
+        font-size: 3em;
+    }
+
+    #projects .container,
+    #work-experience .container {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    #education .container {
+        display: block; /* Revert to block for wider screens to allow different column structure */
+    }
+
+    #education .education-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+
+    #reviews .review-item {
+        width: calc(33.333% - 20px); /* Three reviews per row */
+    }
+}
+
+@media (min-width: 992px) {
+    header .container {
+        flex-direction: row;
+    }
+
+    header h1 {
+        font-size: 2em;
+    }
+
+    nav ul {
+        justify-content: flex-end;
+    }
+
+    #projects .container,
+    #work-experience .container {
+         grid-template-columns: 1fr 2fr; /* Adjust columns for wider screens if needed */
+    }
+
+    #education .container {
+         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjust for wider screens if needed */
+    }
+}
