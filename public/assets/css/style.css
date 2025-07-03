@@ -1,0 +1,239 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    color: #333;
+    line-height: 1.6; /* Ajustado ligeramente para mejor legibilidad */
+}
+
+/* Reset básico para consistencia */
+*, *::before, *::after {
+ box-sizing: border-box;
+}
+
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+header {
+    background-color: #f4f4f4;
+    padding: 1rem 0;
+ border-bottom: 1px solid #ccc; /* Borde inferior como en la maqueta */
+}
+
+header .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+ text-align: center; /* Centrar texto en móvil */
+}
+
+header .profile-image {
+ width: 50px; /* Tamaño de imagen de perfil */
+ height: 50px;
+ background-color: #ccc; /* Placeholder para la imagen */
+ border-radius: 50%; /* Para hacerlo circular */
+ margin-bottom: 10px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+header .subtitle {
+ font-size: 0.9rem;
+ color: #666;
+ margin-top: 5px;
+}
+
+/* Navigation */
+nav ul {
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 15px; /* Espacio entre título y nav */
+}
+
+nav ul li {
+    margin: 8px 0; /* Espacio entre elementos de la lista */
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+ padding: 5px 10px; /* Relleno para hacerlos más cliqueables */
+}
+
+nav ul li a:hover {
+ text-decoration: underline;
+}
+
+#hero {
+    text-align: center;
+    padding: 3rem 0; /* Aumentar padding */
+    background-color: #e2e2e2;
+ border-bottom: 1px solid #ccc;
+}
+
+#hero h2 {
+    margin-bottom: 0.8rem; /* Ajuste de margen */
+}
+
+#hero p {
+    font-size: 1.1rem;
+}
+
+section {
+    padding: 30px 0; /* Aumentar padding de las secciones */
+    border-bottom: 1px solid #eee; /* Separador entre secciones */
+}
+
+section h2 {
+    text-align: center;
+    margin-bottom: 30px; /* Más espacio después del título de sección */
+    font-size: 2rem; /* Tamaño de fuente para títulos de sección */
+    color: #555;
+}
+
+#projects .container,
+#work-experience .container,
+#education .container,
+#reviews .container {
+    /* Flex direction handled by media queries */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Styling for section items */
+.project-item,
+.work-item,
+.education-item,
+.review-item {
+    border: 1px solid #ddd; /* Borde más sutil */
+    padding: 15px;
+    border-radius: 5px; /* Bordes redondeados */
+ background-color: #fff; /* Fondo blanco para las "cajas" */
+ box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
+}
+
+/* Specific styling for Project list */
+#projects .project-item {
+ background-color: #f9f9f9; /* Fondo ligeramente diferente para proyectos */
+ cursor: pointer; /* Indica que es clickeable */
+}
+
+.review-item {
+    text-align: center;
+}
+
+footer {
+    background-color: #333;
+    color: #fff;
+    margin-top: 20px;
+ padding: 1.5rem 0; /* Más padding */
+ text-align: center;
+}
+
+/* Responsive Styles */
+
+@media (min-width: 768px) {
+ /* Header - Desktop */
+    header .container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    header .profile-info {
+ display: flex;
+ align-items: center;
+    }
+
+    header .profile-image {
+ margin-right: 15px;
+ margin-bottom: 0;
+    }
+
+    header h1 {
+ font-size: 2rem; /* Tamaño de fuente más grande en desktop */
+    }
+
+    header .subtitle {
+ margin-top: 0;
+ font-size: 1rem;
+    }
+
+    /* Navigation - Desktop */
+    nav ul {
+        flex-direction: row;
+        margin-top: 0;
+    }
+
+    nav ul li {
+        margin: 0 15px; /* Espacio entre elementos de navegación */
+    }
+
+    /* Section Layouts - Desktop */
+    #projects .container,
+    #work-experience .container,
+    #education .container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between; /* Distribuye el espacio entre elementos */
+    }
+
+    /* Project Items - Desktop */
+    #projects .project-item {
+        flex: 1 1 45%; /* Dos proyectos por fila */
+        max-width: 48%; /* Asegura que no ocupe más del 48% para dejar espacio */
+    }
+
+    /* Work and Education Items - Desktop */
+    #work-experience .work-item,
+    #education .education-item {
+         flex: 1 1 45%; /* Allows two items per row */
+         max-width: 48%;
+    }
+
+    /* Reviews Section - Desktop */
+    #reviews .container {
+        flex-direction: row;
+        justify-content: space-around;
+        flex-wrap: wrap;
+    }
+
+    .review-item {
+        flex: 1 1 30%; /* Allows three items per row */
+        max-width: 32%;
+    }
+}
+
+@media (min-width: 1024px) {
+    /* Adjustments for larger desktops */
+    #projects .container,
+    #work-experience .container,
+    #education .container {
+        flex-wrap: nowrap; /* Tres o más elementos por fila si caben */
+    }
+
+    #reviews .container {
+ flex-wrap: nowrap; /* Tres reseñas por fila */
+    }
+
+    #projects .project-item,
+    #work-experience .work-item,
+    #education .education-item {
+ flex: 1; /* Permite que los elementos crezcan y distribuyan espacio */
+ min-width: 300px; /* Asegura un ancho mínimo para que no se compriman demasiado */
+        max-width: none; /* Remove max-width constraint */
+    }
+
+}
