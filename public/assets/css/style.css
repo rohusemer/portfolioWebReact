@@ -1,30 +1,56 @@
 /* Define CSS variables for color themes */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
 :root {
-    --background-color: #f4f4f4; /* Default light background */
+    /* Blurred background effect */
+    --background-image: url('/assets/background.jpg'); /* Replace with your background image path */
+    --background-blur: 5px; /* Adjust blur amount as needed */
+
+    /* Carousel variables (example values) */
+    --carousel-arrow-color: #fff;
+    --carousel-arrow-size: 40px;
+    --carousel-arrow-bg: rgba(255, 255, 255, 0.5);
+    --carousel-arrow-hover-bg: rgba(255, 255, 255, 0.8);
+    --carousel-indicator-color: rgba(255, 255, 255, 0.5);
+    --carousel-indicator-active-color: rgba(255, 255, 255, 0.8);
+
+    --background-color: #ffffff; /* Default light background */
     --text-color: #333; /* Default light text color */
-    --primary-color: #007bff; /* Example accent color */
-    --section-bg-color: #e2e2e2;
+    --primary-color: #2C3E50; /* A subtle dark blue */
+    --accent-color: #3498DB; /* A bright blue accent */
+    --section-bg-color: #f8f8f8;
  --border-color: #ccc; /* Default light border color */
+ --shadow-color: rgba(0, 0, 0, 0.1); /* Default shadow color */
  --card-bg-color: #ffffff; /* Default card background color */
  --card-border-color: #ddd; /* Default card border color */
- --heading-color: #555; /* Default heading color */
+ --heading-color: var(--primary-color); /* Default heading color */
+ --subheading-color: #555;
  --link-color: #007bff; /* Default link color */
 }
 body {
+    position: relative; /* Needed for absolute positioning of background */
     font-family: 'Open Sans', sans-serif; /* Applied Google Font */
     margin: 0;
     line-height: 1.6;
+    overflow-x: hidden; /* Prevent horizontal scroll due to blur */
 }
 
-/* Reset básico para consistencia */
-*, *::before, *::after {
- box-sizing: border-box;
+/* Blurred background pseudo-element */ /* Apply background blur */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: var(--background-image);
+    background-size: cover;
+    filter: blur(var(--background-blur));
+    z-index: -1; /* Place behind content */
+    transform: scale(1.1); /* To hide blurred edges */
 }
 
-/* Apply color variables */
-body {
-    background-color: var(--background-color);
-    color: var(--text-color);
+/* Blurred background pseudo-element */
+body::before {
 }
 
 
@@ -37,20 +63,21 @@ body {
 /* Header */
 header {
     background-color: var(--background-color);
-    padding: 1rem 0;
+    padding: 1rem 0; /* Increased padding for better spacing */
  border-bottom: 1px solid var(--border-color); /* Borde inferior como en la maqueta */
 }
 
 header .container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-direction: column; /* Stack on mobile */
+    align-items: center; /* Center items vertically */
  text-align: center; /* Centrar texto en móvil */
+ padding: 10px 20px; /* Add padding inside container */
 }
 
 header .profile-image {
- width: 60px; /* Increased size */
- height: 60px;
+ width: 80px; /* Increased size for prominence */
+ height: 80px;
  background-color: #aaa; /* Placeholder color */
  border-radius: 50%;
  margin-bottom: 10px;
@@ -61,25 +88,36 @@ header .profile-image {
 
 header h1 {
     margin: 0;
-    font-size: 1.8rem; /* Slightly larger */
- color: var(--text-color); /* Use text color variable */
+    font-size: 2.5rem; /* Larger font size for name */
+ color: var(--heading-color); /* Use heading color */
+ font-weight: bold;
 }
 
-/* Navigation */
 header .subtitle {
- font-size: 0.9rem;
- color: #666;
- margin-top: 5px;
- font-style: italic; /* Match mockup style */
+    font-size: 1rem;
+ color: var(--subheading-color);
+    margin-top: 5px;
+    font-style: italic;
 }
 
 /* Navigation */
 /* Hide hamburger menu on desktop */
 .hamburger {
     display: block; /* Show on mobile by default */
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-color);
+    z-index: 20; /* Above navigation */
 }
+/* Base Nav Styles */
 nav {
-    padding: 0;
+    width: 100%; /* Full width on mobile */
+    margin-top: 15px;
+    position: relative; /* For absolute positioning of mobile menu */
+}
+    padding: 0; /* Remove default padding */
     list-style: none;
     align-items: center;
     margin-top: 15px; /* Espacio entre título y nav */
@@ -94,36 +132,34 @@ nav ul li a {
     text-decoration: none;
     color: var(--text-color); /* Use text color variable */
     font-weight: bold;
- padding: 5px 10px; /* Relleno para hacerlos más cliqueables */
+    padding: 8px 15px; /* Increased padding for better click area */
  transition: color 0.3s ease; /* Smooth color transition on hover */
 }
 
 nav ul li a:hover {
- color: var(--primary-color); /* Change color on hover */
+ color: var(--accent-color); /* Change color on hover */
 }
 
 /* Mobile Navigation State (Hidden by default) */
 nav ul {
- display: none; /* Hide navigation list on mobile by default */
+    display: none; /* Hide navigation list on mobile by default */
  flex-direction: column;
+    padding: 10px 0;
 }
 
 /* Show navigation list when 'nav-open' class is added by JS */
 nav.nav-open ul {
     display: flex; /* Show navigation list */
- position: absolute; /* Position above other content */
+    position: absolute; /* Position above other content */
  top: 100%; /* Position below header */
- left: 0;
  width: 100%;
  background-color: var(--background-color); /* Match header background */
- border-bottom: 1px solid var(--border-color); /* Add a border */
- box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+ border-bottom: 1px solid var(--border-color);
+ box-shadow: 0 2px 5px var(--shadow-color);
 }
 
 #hero {
-    text-align: center;
-    padding: 3rem 0;
-    background-color: var(--section-bg-color);
+    padding: 60px 20px; /* More padding for hero section */
  border-bottom: 1px solid #ccc;
 }
 
@@ -138,41 +174,43 @@ nav.nav-open ul {
 }
 
 section {
-    padding: 30px 0;
+    padding: 60px 20px; /* Consistent section padding */
     border-bottom: 1px solid var(--border-color); /* Separador entre secciones */
+    position: relative; /* Needed for carousel absolute positioning */
 }
 
 section h2 {
     text-align: center;
     font-size: 2rem; /* Tamaño de fuente para títulos de sección */
     color: #555;
+    margin-bottom: 40px; /* Space below section heading */
 }
 
-#projects .container,
-#work-experience .container,
-#education .container,
-#reviews .container {
+/* Base styling for section containers */
+.section-container {
     /* Flex direction handled by media queries */
-    display: flex; /* Use flexbox for layout */
+    display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
 /* Styling for section items */
-.project-item,
-.work-item,
-.education-item,
-.review-item { /* Updated border color */
+.section-item {
  border: 1px solid var(--card-border-color); /* Use card border color */
-    padding: 20px; /* Increased padding */
+    padding: 25px; /* Increased padding */
     border-radius: 8px; /* Slightly more rounded borders */
  background-color: var(--card-bg-color); /* Use card background color */
- box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
+ box-shadow: 2px 2px 5px var(--shadow-color); /* Soft shadow */
+}
+
+/* Specific styling for individual section items if needed */
+.project-item, .work-item, .education-item, .review-item {
+    /* Add any specific styles here */
 }
 
 /* Specific styling for Project list */
 #projects .project-item {
- cursor: pointer; /* Indica que es clickeable */
+ cursor: pointer; /* Indicates it's clickable */
 }
 
 .review-item {
@@ -187,12 +225,17 @@ section h2 {
     display: block; /* Make it a block element */
 }
 
+/* Contact form styling */
+#contact-form {
+    max-width: 600px; /* Limit form width */
+    margin: 0 auto; /* Center the form */
+}
 /* Footer */
-footer {
-    background-color: var(--text-color); /* Dark background for footer */
- color: var(--background-color); /* Light text for footer */
+footer { /* Apply primary color for footer */
+    background-color: var(--primary-color); /* Use primary color for footer */
+ color: #fff; /* White text for footer */
  text-align: center;
- padding: 2rem 0; /* Increased padding */
+    padding: 2rem 0; /* Increased padding for better spacing */
 }
 
 /* Responsive Styles */
@@ -211,13 +254,16 @@ nav.nav-open ul {
 /* Style for the dark mode toggle button */
 .dark-mode-toggle {
     background: none;
-    border: none;
+    border: 1px solid var(--border-color); /* Add a subtle border */
+    border-radius: 5px;
+    padding: 5px 10px;
     cursor: pointer;
     font-size: 1.2rem;
-    margin-top: 10px; /* Space below subtitle */
+    margin-top: 0px; /* Space below subtitle */
  color: var(--text-color); /* Use text color variable */
  transition: color 0.3s ease;
- align-self: flex-end; /* Align to the right in header on mobile */
+ align-self: center; /* Align to the right in header on mobile */
+ margin-left: auto; /* Push to the right */
 }
 
 @media (min-width: 768px) {
@@ -225,8 +271,7 @@ nav.nav-open ul {
     header .container {
         flex-direction: row;
         justify-content: space-between;
- /* Removed align-items: center; to allow profile and nav to align differently */
-        align-items: center;
+        align-items: flex-start; /* Align items to the top */
     }
 
     header .profile-info {
@@ -235,20 +280,17 @@ nav.nav-open ul {
     }
 
     header .profile-image {
- margin-right: 15px;
+ margin-right: 20px; /* Increased space */
  margin-bottom: 0;
  align-self: center; /* Center image vertically in profile info */
     }
 
     header h1 {
- font-size: 2rem; /* Tamaño de fuente más grande en desktop */
+ font-size: 2.5rem; /* Tamaño de fuente más grande en desktop */
  text-align: left; /* Align name to the left */
+ margin-bottom: 0px; /* Space between name and subtitle */
     }
 
-    header .subtitle {
- margin-top: 0;
- font-size: 1rem;
-    }
 
     /* Hide hamburger menu on desktop */
     .hamburger {
@@ -274,11 +316,10 @@ nav.nav-open ul {
     nav ul {
         display: flex; /* Override mobile display: none */
         flex-direction: row;
+ margin-top: 0;
     }
 
-    /* Section Layouts - Desktop */
-    #projects .container,
-    #work-experience .container,
+    /* Section containers on desktop */
     #education .container {
         flex-direction: row;
         flex-wrap: wrap;
@@ -286,17 +327,18 @@ nav.nav-open ul {
     }
 
     /* Project Items - Desktop */
-    #projects .project-item {
-        flex: 1 1 45%; /* Dos proyectos por fila */
-        max-width: 48%; /* Asegura que no ocupe más del 48% para dejar espacio */
+    #work-experience .section-item,
+    #education .section-item {
+ flex: 1 1 45%; /* Allows two items per row */
+ max-width: 48%;
     }
 
-    /* Work and Education Items - Desktop */
-    #work-experience .work-item,
-    #education .education-item {
-         flex: 1 1 45%; /* Allows two items per row */
-         max-width: 48%;
-    }
+    /* Work and Education Items Layout */
+
+/* Project Items - Desktop */
+    #projects .section-item {
+        flex: 1 1 45%;
+        max-width: 48%;
 
     /* Reviews Section - Desktop */
     #reviews .container {
@@ -328,17 +370,21 @@ nav.nav-open ul {
 
 /* Dark Mode Styles */
 .dark-mode {
-    --background-color: #1e1e1e;
-    --text-color: #cccccc; /* Lighter text for dark mode */
-    --primary-color: #bb86fc; /* Example accent color for dark mode */
-    --section-bg-color: #2c2c2c;
+    --background-color: #121212; /* Very dark background */
+    --text-color: #eeeeee; /* Light gray text for contrast */
+    --primary-color: #03DAC6; /* A vibrant teal accent */
+    --section-bg-color: #1e1e1e; /* Slightly lighter dark for sections */
+    --shadow-color: rgba(255, 255, 255, 0.1); /* Light shadow for dark mode */
  --border-color: #555; /* Dark mode border color */
  --card-bg-color: #333333; /* Dark mode card background */
  --card-border-color: #555555; /* Dark mode card border */
- --heading-color: #bb86fc; /* Dark mode heading color (optional) */
- --link-color: #bb86fc; /* Dark mode link color */
+ --heading-color: var(--primary-color); /* Dark mode heading color */
+ --subheading-color: #bbbbbb;
+ --link-color: var(--primary-color); /* Dark mode link color */
+ --dark-mode-toggle-color: var(--text-color);
 }
 
+/* Apply dark mode colors */
 .dark-mode h1,
 .dark-mode h2 {
  color: var(--heading-color); /* Apply dark mode heading color */
@@ -348,9 +394,14 @@ nav.nav-open ul {
  color: var(--link-color); /* Apply dark mode link color */
 }
 
-
-
 .dark-mode header {
+    border-bottom-color: #555;
+}
+/* Apply dark mode colors */
+
+
+
+.dark-mode section {
     border-bottom-color: #555;
 }
 
@@ -358,13 +409,145 @@ nav.nav-open ul {
     border-bottom-color: #555;
 }
 
-.dark-mode .project-item,
-.dark-mode .work-item,
-.dark-mode .education-item,
-.dark-mode .review-item {
+.dark-mode .section-item {
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4); /* More prominent shadow in dark mode */
+ color: var(--text-color);
+}
+
+.dark-mode .dark-mode-toggle {
+ color: var(--dark-mode-toggle-color);
 }
 
 .dark-mode footer {
-    background-color: var(--text-color); /* Darker background for footer */
+    background-color: var(--primary-color); /* Use primary color */
+    color: #121212; /* Very dark text for contrast */
+}
+
+/* Carousel Styles (Example - adjust based on your chosen library) */
+.carousel-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel-inner {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.carousel-item {
+    min-width: 100%;
+    box-sizing: border-box; /* Include padding and border in element's total width */
+}
+
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--carousel-arrow-bg);
+    border: none;
+    color: var(--carousel-arrow-color);
+    font-size: var(--carousel-arrow-size);
+    padding: 10px;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 50%; /* Make arrows circular */
+    transition: background 0.3s ease;
+}
+
+.carousel-control:hover {
+    background: var(--carousel-arrow-hover-bg);
+}
+
+.carousel-control-prev {
+    left: 10px;
+}
+
+.carousel-control-next {
+    right: 10px;
+}
+
+.carousel-indicators {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 10;
+}
+
+.carousel-indicators li {
+    margin: 0 5px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--carousel-indicator-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.carousel-indicators li.active {
+    background-color: var(--carousel-indicator-active-color);
+}
+
+/* Contact form styling */
+
+
+
+/* Contact Form Styles */
+#contact-form label {
+    display: block; /* Labels on their own line */
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#contact-form input,
+#contact-form textarea {
+    width: 100%; /* Full width for input fields */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--card-bg-color); /* Use card background for input */
+ color: var(--text-color); /* Use text color */
+}
+
+.dark-mode #contact-form input,
+.dark-mode #contact-form textarea {
+    border-color: var(--card-border-color); /* Dark mode border */
+    background-color: var(--card-bg-color); /* Dark mode background */
+    color: var(--text-color); /* Dark mode text */
+}
+
+#contact-form button {
+ background-color: var(--accent-color); /* Primary color for button */
+    color: #fff; /* White text */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+#contact-form button:hover {
+ background-color: darken(var(--accent-color), 10%); /* Darken button on hover */
+}
+
+.dark-mode #contact-form button {
+ background-color: var(--primary-color); /* Primary color */
+ color: #121212; /* Very dark text */
+}
+
+.dark-mode #contact-form button:hover {
+     background-color: lighten(var(--primary-color), 10%); /* Lighten button on hover */
+}
+
+/* Ensure content is above the blurred background */
+body > * {
+    position: relative;
+    z-index: 1;
 }
