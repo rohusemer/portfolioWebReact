@@ -14,7 +14,7 @@
     <header>
  <button class="hamburger" aria-label="Toggle navigation menu">
             &#9776;
-        </button>
+ </button>
         <div class="header-content">
             <div class="profile-info">
                 <img src="placeholder-profile.png" alt="Tu Foto de Perfil" class="profile-pic">
@@ -23,12 +23,15 @@
             <nav>
                 <ul>
                     <li><a href="#hero">Inicio</a></li>
+                    <li><a href="#skills">Habilidades</a></li>
                     <li><a href="#projects">Proyectos</a></li>
                     <li><a href="#work-experience">Experiencia</a></li>
                     <li><a href="#education">Educación</a></li>
-                    <li><a href="#reviews">Reseñas</a></li>
+                    <li><a href="#languages">Idiomas</a></li>
+                    <li><a href="#hobbies">Intereses</a></li>
                     <li><a href="#contact">Contacto</a></li>
                 </ul>
+ <a href="https://www.linkedin.com/in/ronny-segura-b320a5317/" target="_blank">LinkedIn</a>
             </nav>
             <nav class="dark-mode-toggle">
                 <button id="mode-toggle" aria-label="Toggle dark mode">Modo Oscuro</button>
@@ -44,6 +47,23 @@
     </section>
 
     <main>
+ <section id="skills" class="section">
+            <h2>Habilidades</h2>
+            <div class="skills-list">
+                <div class="skill-item">
+                    <h3>Frontend</h3>
+                    <p>HTML, CSS, JavaScript, React, Angular, Vue.js, Bootstrap, Tailwind CSS</p>
+                </div>
+                <div class="skill-item">
+                    <h3>Backend</h3>
+                    <p>Node.js, Express, Python, Django, Flask, Ruby on Rails, PHP, Laravel</p>
+                </div>
+                <div class="skill-item">
+                    <h3>Bases de Datos</h3>
+                    <p>MongoDB, SQL, PostgreSQL, MySQL</p>
+                </div>
+            </div>
+ </section>
         <section id="projects" class="section">
             <!-- Carousel structure for projects -->
             <h2>Proyectos</h2>
@@ -84,13 +104,15 @@
             <div class="experience-list">
                 <div class="experience-item">
                     <h3>roadmap.sh</h3>
+ <p>Desde: Mayo 2024 - Presente</p>
                     <p>Solved all the frontend projects</p>
-                    <a href="#" target="_blank">Visit my Profile</a>
+ <a href="https://roadmap.sh/" target="_blank">Visitar roadmap.sh</a>
                 </div>
                 <div class="experience-item">
                     <h3>OpenSource Work</h3>
+ <p>Desde: Abril 2023 - Presente</p>
                     <p>Contributed to 50 opensource projects. Made my own projects with 200 GitHub Stars.</p>
-                    <a href="#" target="_blank">Visit my GitHub Profile</a>
+ <a href="https://github.com/Ronny-Segura" target="_blank">Visitar mi Perfil de GitHub</a>
                 </div>
             </div>
         </section>
@@ -99,7 +121,8 @@
             <h2>Educación</h2>
             <div class="education-list">
                 <div class="education-item">
-                    <p>Graduated with 3.76 out of 4 CGPA. Won Acme Hackathon. Organized 30 sessions.</p>
+                    <h3>Universidad Tecnológica de Panamá</h3>
+ <p>Licenciatura en Ingeniería de Sistemas de Información</p>
                     <h4>Cursos que tomé:</h4>
                     <ul>
                         <li>Object Oriented Programming</li>
@@ -115,26 +138,19 @@
                 </div>
             </div>
         </section>
+ <section id="languages" class="section">
+            <h2>Idiomas</h2>
+            <p>Español (Nativo)</p>
+            <p>Inglés (Intermedio)</p>
+ </section>
 
-        <section id="reviews" class="section">
-            <h2>Reseñas de mis Maestros</h2>
-            <div class="reviews-list">
-                <div class="review-item">
-                    <p>John doe was a brilliant student; always stood out with his assignments.</p>
-                    <p><strong>Jane Doe</strong></p>
-                    <p><em>Assistant Professor</em></p>
-                </div>
-                 <div class="review-item">
-                    <p>John doe was a brilliant student; always stood out with his assignments.</p>
-                    <p><strong>Jane Doe</strong></p>
-                    <p><em>Assistant Professor</em></p>
-                </div>
-                 <div class="review-item">
-                    <p>John doe was a brilliant student; always stood out with his assignments.</p>
-                    <p><strong>Jane Doe</strong></p>
-                    <p><em>Assistant Professor</em></p>
-                </div>
-            </div>
+ <section id="hobbies" class="section">
+            <h2>Intereses</h2>
+            <ul>
+                <li>Desarrollo de Videojuegos</li>
+                <li>Edición de Video</li>
+                <li>Hacer ejercicio</li>
+            </ul>
         </section>
     </main>
 
@@ -148,6 +164,11 @@
             <div>
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" required>
+            </div>
+            <div>
+                <label for="message">Mensaje:</label>
+ <p>Email: ronnysegura75@gmail.com</p>
+ <p>Teléfono: +507 6556-5912</p>
             </div>
             <div>
                 <label for="message">Mensaje:</label>
