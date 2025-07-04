@@ -1,13 +1,30 @@
+/* Define CSS variables for color themes */
+:root {
+    --background-color: #f4f4f4; /* Default light background */
+    --text-color: #333; /* Default light text color */
+    --primary-color: #007bff; /* Example accent color */
+    --section-bg-color: #e2e2e2;
+ --border-color: #ccc; /* Default light border color */
+ --card-bg-color: #ffffff; /* Default card background color */
+ --card-border-color: #ddd; /* Default card border color */
+ --heading-color: #555; /* Default heading color */
+ --link-color: #007bff; /* Default link color */
+}
 body {
-    font-family: sans-serif;
+    font-family: 'Open Sans', sans-serif; /* Applied Google Font */
     margin: 0;
-    color: #333;
-    line-height: 1.6; /* Ajustado ligeramente para mejor legibilidad */
+    line-height: 1.6;
 }
 
 /* Reset básico para consistencia */
 *, *::before, *::after {
  box-sizing: border-box;
+}
+
+/* Apply color variables */
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 
@@ -19,9 +36,9 @@ body {
 
 /* Header */
 header {
-    background-color: #f4f4f4;
+    background-color: var(--background-color);
     padding: 1rem 0;
- border-bottom: 1px solid #ccc; /* Borde inferior como en la maqueta */
+ border-bottom: 1px solid var(--border-color); /* Borde inferior como en la maqueta */
 }
 
 header .container {
@@ -32,72 +49,101 @@ header .container {
 }
 
 header .profile-image {
- width: 50px; /* Tamaño de imagen de perfil */
- height: 50px;
- background-color: #ccc; /* Placeholder para la imagen */
- border-radius: 50%; /* Para hacerlo circular */
+ width: 60px; /* Increased size */
+ height: 60px;
+ background-color: #aaa; /* Placeholder color */
+ border-radius: 50%;
  margin-bottom: 10px;
+ object-fit: cover; /* Ensure image covers the area */
+ border: 2px solid var(--primary-color); /* Optional: border around image */
+ box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional: slight shadow */
 }
 
 header h1 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.8rem; /* Slightly larger */
+ color: var(--text-color); /* Use text color variable */
 }
 
+/* Navigation */
 header .subtitle {
  font-size: 0.9rem;
  color: #666;
  margin-top: 5px;
+ font-style: italic; /* Match mockup style */
 }
 
 /* Navigation */
-nav ul {
+/* Hide hamburger menu on desktop */
+.hamburger {
+    display: block; /* Show on mobile by default */
+}
+nav {
     padding: 0;
     list-style: none;
-    display: flex;
-    flex-direction: column;
     align-items: center;
     margin-top: 15px; /* Espacio entre título y nav */
 }
 
 nav ul li {
-    margin: 8px 0; /* Espacio entre elementos de la lista */
+    margin: 10px 0; /* Espacio entre elementos de la lista */
+    text-align: center;
 }
 
 nav ul li a {
     text-decoration: none;
-    color: #333;
+    color: var(--text-color); /* Use text color variable */
     font-weight: bold;
  padding: 5px 10px; /* Relleno para hacerlos más cliqueables */
+ transition: color 0.3s ease; /* Smooth color transition on hover */
 }
 
 nav ul li a:hover {
- text-decoration: underline;
+ color: var(--primary-color); /* Change color on hover */
+}
+
+/* Mobile Navigation State (Hidden by default) */
+nav ul {
+ display: none; /* Hide navigation list on mobile by default */
+ flex-direction: column;
+}
+
+/* Show navigation list when 'nav-open' class is added by JS */
+nav.nav-open ul {
+    display: flex; /* Show navigation list */
+ position: absolute; /* Position above other content */
+ top: 100%; /* Position below header */
+ left: 0;
+ width: 100%;
+ background-color: var(--background-color); /* Match header background */
+ border-bottom: 1px solid var(--border-color); /* Add a border */
+ box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 #hero {
     text-align: center;
-    padding: 3rem 0; /* Aumentar padding */
-    background-color: #e2e2e2;
+    padding: 3rem 0;
+    background-color: var(--section-bg-color);
  border-bottom: 1px solid #ccc;
 }
 
 #hero h2 {
-    margin-bottom: 0.8rem; /* Ajuste de margen */
+    margin-bottom: 0.5rem; /* Ajuste de margen */
+ font-size: 2.5rem; /* Larger font size for main heading */
 }
 
 #hero p {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+ color: var(--text-color); /* Ensure paragraph uses text color */
 }
 
 section {
-    padding: 30px 0; /* Aumentar padding de las secciones */
-    border-bottom: 1px solid #eee; /* Separador entre secciones */
+    padding: 30px 0;
+    border-bottom: 1px solid var(--border-color); /* Separador entre secciones */
 }
 
 section h2 {
     text-align: center;
-    margin-bottom: 30px; /* Más espacio después del título de sección */
     font-size: 2rem; /* Tamaño de fuente para títulos de sección */
     color: #555;
 }
@@ -107,7 +153,7 @@ section h2 {
 #education .container,
 #reviews .container {
     /* Flex direction handled by media queries */
-    display: flex;
+    display: flex; /* Use flexbox for layout */
     flex-direction: column;
     gap: 20px;
 }
@@ -116,39 +162,70 @@ section h2 {
 .project-item,
 .work-item,
 .education-item,
-.review-item {
-    border: 1px solid #ddd; /* Borde más sutil */
-    padding: 15px;
-    border-radius: 5px; /* Bordes redondeados */
- background-color: #fff; /* Fondo blanco para las "cajas" */
+.review-item { /* Updated border color */
+ border: 1px solid var(--card-border-color); /* Use card border color */
+    padding: 20px; /* Increased padding */
+    border-radius: 8px; /* Slightly more rounded borders */
+ background-color: var(--card-bg-color); /* Use card background color */
  box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
 }
 
 /* Specific styling for Project list */
 #projects .project-item {
- background-color: #f9f9f9; /* Fondo ligeramente diferente para proyectos */
  cursor: pointer; /* Indica que es clickeable */
 }
 
 .review-item {
-    text-align: center;
+    text-align: left; /* Align text left as typical for reviews */
+ font-style: italic; /* Italicize review text */
 }
 
+/* Optional: Style for author/title in reviews */
+.review-author {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block; /* Make it a block element */
+}
+
+/* Footer */
 footer {
-    background-color: #333;
-    color: #fff;
-    margin-top: 20px;
- padding: 1.5rem 0; /* Más padding */
+    background-color: var(--text-color); /* Dark background for footer */
+ color: var(--background-color); /* Light text for footer */
  text-align: center;
+ padding: 2rem 0; /* Increased padding */
 }
 
 /* Responsive Styles */
+/* Hide navigation list on mobile by default */
+nav ul {
+    display: none;
+}
+
+/* Show navigation list when 'nav-open' class is added by JS */
+nav.nav-open ul {
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Style for the dark mode toggle button */
+.dark-mode-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-top: 10px; /* Space below subtitle */
+ color: var(--text-color); /* Use text color variable */
+ transition: color 0.3s ease;
+ align-self: flex-end; /* Align to the right in header on mobile */
+}
 
 @media (min-width: 768px) {
  /* Header - Desktop */
     header .container {
         flex-direction: row;
         justify-content: space-between;
+ /* Removed align-items: center; to allow profile and nav to align differently */
         align-items: center;
     }
 
@@ -160,10 +237,12 @@ footer {
     header .profile-image {
  margin-right: 15px;
  margin-bottom: 0;
+ align-self: center; /* Center image vertically in profile info */
     }
 
     header h1 {
  font-size: 2rem; /* Tamaño de fuente más grande en desktop */
+ text-align: left; /* Align name to the left */
     }
 
     header .subtitle {
@@ -171,14 +250,30 @@ footer {
  font-size: 1rem;
     }
 
-    /* Navigation - Desktop */
-    nav ul {
-        flex-direction: row;
-        margin-top: 0;
+    /* Hide hamburger menu on desktop */
+    .hamburger {
+        display: none;
     }
 
-    nav ul li {
-        margin: 0 15px; /* Espacio entre elementos de navegación */
+
+
+    /* Dark mode toggle position on desktop */
+    .dark-mode-toggle {
+        margin-top: 0; /* No extra margin needed */
+        margin-left: 20px; /* Space from nav */
+    }
+
+    /* Navigation - Desktop */
+    nav {
+        display: flex; /* Show navigation */
+        justify-content: center; /* Center nav items if needed, or align left */
+ align-items: center; /* Align nav items vertically */
+ flex-grow: 1; /* Allow nav to take available space */
+    }
+
+    nav ul {
+        display: flex; /* Override mobile display: none */
+        flex-direction: row;
     }
 
     /* Section Layouts - Desktop */
@@ -206,7 +301,7 @@ footer {
     /* Reviews Section - Desktop */
     #reviews .container {
         flex-direction: row;
-        justify-content: space-around;
+        justify-content: space-between; /* Distribute space */
         flex-wrap: wrap;
     }
 
@@ -216,24 +311,60 @@ footer {
     }
 }
 
-@media (min-width: 1024px) {
-    /* Adjustments for larger desktops */
-    #projects .container,
-    #work-experience .container,
-    #education .container {
-        flex-wrap: nowrap; /* Tres o más elementos por fila si caben */
-    }
-
-    #reviews .container {
- flex-wrap: nowrap; /* Tres reseñas por fila */
-    }
-
+/* Optional: Adjustments for larger screens (if needed) */
+/* @media (min-width: 1024px) {
     #projects .project-item,
     #work-experience .work-item,
     #education .education-item {
- flex: 1; /* Permite que los elementos crezcan y distribuyan espacio */
- min-width: 300px; /* Asegura un ancho mínimo para que no se compriman demasiado */
-        max-width: none; /* Remove max-width constraint */
+        flex: 1 1 30%;
+        max-width: 32%;
     }
 
+    .review-item {
+        flex: 1 1 30%;
+        max-width: 32%;
+    }
+} */
+
+/* Dark Mode Styles */
+.dark-mode {
+    --background-color: #1e1e1e;
+    --text-color: #cccccc; /* Lighter text for dark mode */
+    --primary-color: #bb86fc; /* Example accent color for dark mode */
+    --section-bg-color: #2c2c2c;
+ --border-color: #555; /* Dark mode border color */
+ --card-bg-color: #333333; /* Dark mode card background */
+ --card-border-color: #555555; /* Dark mode card border */
+ --heading-color: #bb86fc; /* Dark mode heading color (optional) */
+ --link-color: #bb86fc; /* Dark mode link color */
+}
+
+.dark-mode h1,
+.dark-mode h2 {
+ color: var(--heading-color); /* Apply dark mode heading color */
+}
+
+.dark-mode a {
+ color: var(--link-color); /* Apply dark mode link color */
+}
+
+
+
+.dark-mode header {
+    border-bottom-color: #555;
+}
+
+.dark-mode section {
+    border-bottom-color: #555;
+}
+
+.dark-mode .project-item,
+.dark-mode .work-item,
+.dark-mode .education-item,
+.dark-mode .review-item {
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4); /* More prominent shadow in dark mode */
+}
+
+.dark-mode footer {
+    background-color: var(--text-color); /* Darker background for footer */
 }
