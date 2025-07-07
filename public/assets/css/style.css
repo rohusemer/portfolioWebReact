@@ -1,553 +1,364 @@
-/* Define CSS variables for color themes */
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
+/*==================== Variables ====================*/
 :root {
-    /* Blurred background effect */
-    --background-image: url('/assets/background.jpg'); /* Replace with your background image path */
-    --background-blur: 5px; /* Adjust blur amount as needed */
-
-    /* Carousel variables (example values) */
-    --carousel-arrow-color: #fff;
-    --carousel-arrow-size: 40px;
-    --carousel-arrow-bg: rgba(255, 255, 255, 0.5);
-    --carousel-arrow-hover-bg: rgba(255, 255, 255, 0.8);
-    --carousel-indicator-color: rgba(255, 255, 255, 0.5);
-    --carousel-indicator-active-color: rgba(255, 255, 255, 0.8);
-
-    --background-color: #ffffff; /* Default light background */
-    --text-color: #333; /* Default light text color */
-    --primary-color: #2C3E50; /* A subtle dark blue */
-    --accent-color: #3498DB; /* A bright blue accent */
-    --section-bg-color: #f8f8f8;
- --border-color: #ccc; /* Default light border color */
- --shadow-color: rgba(0, 0, 0, 0.1); /* Default shadow color */
- --card-bg-color: #ffffff; /* Default card background color */
- --card-border-color: #ddd; /* Default card border color */
- --heading-color: var(--primary-color); /* Default heading color */
- --subheading-color: #555;
- --link-color: #007bff; /* Default link color */
+    --primary-color: #007bff;
+    /* Blue */
+    --secondary-color: #6c757d;
+    --background-color-light: #ffffff;
+    --text-color-light: #343a40;
+    --background-color-dark: #343a40;
+    --text-color-dark: #f8f9fa;
+    --card-background-light: #f8f9fa;
+    --card-background-dark: #495057;
 }
+
+/* Light Theme */
+[data-theme="light"] {
+    --background-color: var(--background-color-light);
+    --text-color: var(--text-color-light);
+    --card-background: var(--card-background-light);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --background-color: var(--background-color-dark);
+    --text-color: var(--text-color-dark);
+    --card-background: var(--card-background-dark);
+}
+
+/*==================== General Styles ====================*/
+
 body {
-    position: relative; /* Needed for absolute positioning of background */
-    font-family: 'Open Sans', sans-serif; /* Applied Google Font */
-    margin: 0;
+    font-family: 'Arial', sans-serif;
     line-height: 1.6;
-    overflow-x: hidden; /* Prevent horizontal scroll due to blur */
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Blurred background pseudo-element */ /* Apply background blur */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: var(--background-image);
-    background-size: cover;
-    filter: blur(var(--background-blur));
-    z-index: -1; /* Place behind content */
-    transform: scale(1.1); /* To hide blurred edges */
-}
-
-/* Blurred background pseudo-element */
-body::before {
-}
-
-
+/* Container for centering content */
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* Header */
+/*==================== Header and Navigation ====================*/
+
 header {
-    background-color: var(--background-color);
-    padding: 1rem 0; /* Increased padding for better spacing */
- border-bottom: 1px solid var(--border-color); /* Borde inferior como en la maqueta */
+    background-color: var(--card-background);
+    padding: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-header .container {
-    display: flex;
-    flex-direction: column; /* Stack on mobile */
-    align-items: center; /* Center items vertically */
- text-align: center; /* Centrar texto en móvil */
- padding: 10px 20px; /* Add padding inside container */
-}
-
-header .profile-image {
- width: 80px; /* Increased size for prominence */
- height: 80px;
- background-color: #aaa; /* Placeholder color */
- border-radius: 50%;
- margin-bottom: 10px;
- object-fit: cover; /* Ensure image covers the area */
- border: 2px solid var(--primary-color); /* Optional: border around image */
- box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional: slight shadow */
-}
-
-header h1 {
-    margin: 0;
-    font-size: 2.5rem; /* Larger font size for name */
- color: var(--heading-color); /* Use heading color */
- font-weight: bold;
-}
-
-header .subtitle {
-    font-size: 1rem;
- color: var(--subheading-color);
-    margin-top: 5px;
-    font-style: italic;
-}
-
-/* Navigation */
-/* Hide hamburger menu on desktop */
-.hamburger {
-    display: block; /* Show on mobile by default */
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-color);
-    z-index: 20; /* Above navigation */
-}
-/* Base Nav Styles */
+/* Navigation Bar */
 nav {
-    width: 100%; /* Full width on mobile */
-    margin-top: 15px;
-    position: relative; /* For absolute positioning of mobile menu */
-}
-    padding: 0; /* Remove default padding */
-    list-style: none;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    margin-top: 15px; /* Espacio entre título y nav */
 }
 
-nav ul li {
-    margin: 10px 0; /* Espacio entre elementos de la lista */
-    text-align: center;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: var(--text-color); /* Use text color variable */
+/* Site Logo */
+nav .logo {
+    font-size: 1.8em;
     font-weight: bold;
-    padding: 8px 15px; /* Increased padding for better click area */
- transition: color 0.3s ease; /* Smooth color transition on hover */
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+/* Navigation Menu */
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+/* Navigation List Item */
+nav ul li {
+    margin-left: 20px;
+}
+
+/* Navigation Link */
+nav ul li a {
+    /* Inherits theme text color */
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
 }
 
 nav ul li a:hover {
- color: var(--accent-color); /* Change color on hover */
+    color: var(--primary-color);
 }
 
-/* Mobile Navigation State (Hidden by default) */
-nav ul {
-    display: none; /* Hide navigation list on mobile by default */
- flex-direction: column;
-    padding: 10px 0;
+/* Theme Toggle Button */
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 1.2em;
 }
 
-/* Show navigation list when 'nav-open' class is added by JS */
-nav.nav-open ul {
-    display: flex; /* Show navigation list */
-    position: absolute; /* Position above other content */
- top: 100%; /* Position below header */
- width: 100%;
- background-color: var(--background-color); /* Match header background */
- border-bottom: 1px solid var(--border-color);
- box-shadow: 0 2px 5px var(--shadow-color);
-}
-
-#hero {
-    padding: 60px 20px; /* More padding for hero section */
- border-bottom: 1px solid #ccc;
-}
-
-#hero h2 {
-    margin-bottom: 0.5rem; /* Ajuste de margen */
- font-size: 2.5rem; /* Larger font size for main heading */
-}
-
-#hero p {
-    font-size: 1.2rem;
- color: var(--text-color); /* Ensure paragraph uses text color */
-}
-
+/*==================== Sections ====================*/
 section {
-    padding: 60px 20px; /* Consistent section padding */
-    border-bottom: 1px solid var(--border-color); /* Separador entre secciones */
-    position: relative; /* Needed for carousel absolute positioning */
+    padding: 60px 0;
+    text-align: center;
 }
 
+/* Section Headings */
 section h2 {
     text-align: center;
-    font-size: 2rem; /* Tamaño de fuente para títulos de sección */
-    color: #555;
-    margin-bottom: 40px; /* Space below section heading */
+    margin-bottom: 40px;
+    font-size: 2.5em;
+    color: var(--primary-color);
 }
 
-/* Base styling for section containers */
-.section-container {
-    /* Flex direction handled by media queries */
+/* About Section */
+#about {
+    background-color: var(--card-background);
+}
+
+/* Layout for About section content */
+.about-content {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+/* Profile Image Styling */
+.profile-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid var(--primary-color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Styling for About section text block */
+.about-text {
+    max-width: 800px;
+    text-align: center;
+}
+
+/* Skills Section */
+#skills .skills-list {
+    /* Flexbox for skill items */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 20px;
 }
 
-/* Styling for section items */
-.section-item {
- border: 1px solid var(--card-border-color); /* Use card border color */
-    padding: 25px; /* Increased padding */
-    border-radius: 8px; /* Slightly more rounded borders */
- background-color: var(--card-bg-color); /* Use card background color */
- box-shadow: 2px 2px 5px var(--shadow-color); /* Soft shadow */
-}
-
-/* Specific styling for individual section items if needed */
-.project-item, .work-item, .education-item, .review-item {
-    /* Add any specific styles here */
-}
-
-/* Specific styling for Project list */
-#projects .project-item {
- cursor: pointer; /* Indicates it's clickable */
-}
-
-.review-item {
-    text-align: left; /* Align text left as typical for reviews */
- font-style: italic; /* Italicize review text */
-}
-
-/* Optional: Style for author/title in reviews */
-.review-author {
+.skill-item {
+    /* Styling for individual skill items */
+    background-color: var(--card-background);
+    padding: 15px 25px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     font-weight: bold;
-    margin-top: 10px;
-    display: block; /* Make it a block element */
 }
 
-/* Contact form styling */
-#contact-form {
-    max-width: 600px; /* Limit form width */
-    margin: 0 auto; /* Center the form */
-}
-/* Footer */
-footer { /* Apply primary color for footer */
-    background-color: var(--primary-color); /* Use primary color for footer */
- color: #fff; /* White text for footer */
- text-align: center;
-    padding: 2rem 0; /* Increased padding for better spacing */
-}
-
-/* Responsive Styles */
-/* Hide navigation list on mobile by default */
-nav ul {
-    display: none;
-}
-
-/* Show navigation list when 'nav-open' class is added by JS */
-nav.nav-open ul {
+/* Experience and Education Sections */
+#experience .experience-items,
+#education .education-items {
     display: flex;
     flex-direction: column;
+    gap: 30px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-
-/* Style for the dark mode toggle button */
-.dark-mode-toggle {
-    background: none;
-    border: 1px solid var(--border-color); /* Add a subtle border */
-    border-radius: 5px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    margin-top: 0px; /* Space below subtitle */
- color: var(--text-color); /* Use text color variable */
- transition: color 0.3s ease;
- align-self: center; /* Align to the right in header on mobile */
- margin-left: auto; /* Push to the right */
+/* Styling for individual experience and education items */
+.experience-item,
+.education-item {
+    background-color: var(--card-background);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
 }
 
-@media (min-width: 768px) {
- /* Header - Desktop */
-    header .container {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: flex-start; /* Align items to the top */
-    }
-
-    header .profile-info {
- display: flex;
- align-items: center;
-    }
-
-    header .profile-image {
- margin-right: 20px; /* Increased space */
- margin-bottom: 0;
- align-self: center; /* Center image vertically in profile info */
-    }
-
-    header h1 {
- font-size: 2.5rem; /* Tamaño de fuente más grande en desktop */
- text-align: left; /* Align name to the left */
- margin-bottom: 0px; /* Space between name and subtitle */
-    }
-
-
-    /* Hide hamburger menu on desktop */
-    .hamburger {
-        display: none;
-    }
-
-
-
-    /* Dark mode toggle position on desktop */
-    .dark-mode-toggle {
-        margin-top: 0; /* No extra margin needed */
-        margin-left: 20px; /* Space from nav */
-    }
-
-    /* Navigation - Desktop */
-    nav {
-        display: flex; /* Show navigation */
-        justify-content: center; /* Center nav items if needed, or align left */
- align-items: center; /* Align nav items vertically */
- flex-grow: 1; /* Allow nav to take available space */
-    }
-
-    nav ul {
-        display: flex; /* Override mobile display: none */
-        flex-direction: row;
- margin-top: 0;
-    }
-
-    /* Section containers on desktop */
-    #education .container {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: space-between; /* Distribuye el espacio entre elementos */
-    }
-
-    /* Project Items - Desktop */
-    #work-experience .section-item,
-    #education .section-item {
- flex: 1 1 45%; /* Allows two items per row */
- max-width: 48%;
-    }
-
-    /* Work and Education Items Layout */
-
-/* Project Items - Desktop */
-    #projects .section-item {
-        flex: 1 1 45%;
-        max-width: 48%;
-
-    /* Reviews Section - Desktop */
-    #reviews .container {
-        flex-direction: row;
-        justify-content: space-between; /* Distribute space */
-        flex-wrap: wrap;
-    }
-
-    .review-item {
-        flex: 1 1 30%; /* Allows three items per row */
-        max-width: 32%;
-    }
+/* Headings within experience and education items */
+.experience-item h3,
+.education-item h3 {
+    margin-top: 0;
+    color: var(--primary-color);
 }
 
-/* Optional: Adjustments for larger screens (if needed) */
-/* @media (min-width: 1024px) {
-    #projects .project-item,
-    #work-experience .work-item,
-    #education .education-item {
-        flex: 1 1 30%;
-        max-width: 32%;
-    }
+/* Paragraphs within experience and education items */
+.experience-item p,
+.education-item p {
+    margin-bottom: 5px;
+}
+/* Projects Section */
 
-    .review-item {
-        flex: 1 1 30%;
-        max-width: 32%;
-    }
-} */
-
-/* Dark Mode Styles */
-.dark-mode {
-    --background-color: #121212; /* Very dark background */
-    --text-color: #eeeeee; /* Light gray text for contrast */
-    --primary-color: #03DAC6; /* A vibrant teal accent */
-    --section-bg-color: #1e1e1e; /* Slightly lighter dark for sections */
-    --shadow-color: rgba(255, 255, 255, 0.1); /* Light shadow for dark mode */
- --border-color: #555; /* Dark mode border color */
- --card-bg-color: #333333; /* Dark mode card background */
- --card-border-color: #555555; /* Dark mode card border */
- --heading-color: var(--primary-color); /* Dark mode heading color */
- --subheading-color: #bbbbbb;
- --link-color: var(--primary-color); /* Dark mode link color */
- --dark-mode-toggle-color: var(--text-color);
+#projects .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
 }
 
-/* Apply dark mode colors */
-.dark-mode h1,
-.dark-mode h2 {
- color: var(--heading-color); /* Apply dark mode heading color */
-}
-
-.dark-mode a {
- color: var(--link-color); /* Apply dark mode link color */
-}
-
-.dark-mode header {
-    border-bottom-color: #555;
-}
-/* Apply dark mode colors */
-
-
-
-.dark-mode section {
-    border-bottom-color: #555;
-}
-
-.dark-mode section {
-    border-bottom-color: #555;
-}
-
-.dark-mode .section-item {
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4); /* More prominent shadow in dark mode */
- color: var(--text-color);
-}
-
-.dark-mode .dark-mode-toggle {
- color: var(--dark-mode-toggle-color);
-}
-
-.dark-mode footer {
-    background-color: var(--primary-color); /* Use primary color */
-    color: #121212; /* Very dark text for contrast */
-}
-
-/* Carousel Styles (Example - adjust based on your chosen library) */
-.carousel-container {
-    position: relative;
+/* Styling for individual project items */
+.project-item {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    text-align: left;
 }
 
-.carousel-inner {
-    display: flex;
-    transition: transform 0.5s ease-in-out;
+/* Project image styling */
+.project-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
 }
 
-.carousel-item {
-    min-width: 100%;
-    box-sizing: border-box; /* Include padding and border in element's total width */
+/* Container for project item text content */
+.project-item-content {
+    padding: 20px;
 }
 
-.carousel-control {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--carousel-arrow-bg);
-    border: none;
-    color: var(--carousel-arrow-color);
-    font-size: var(--carousel-arrow-size);
-    padding: 10px;
-    cursor: pointer;
-    z-index: 10;
-    border-radius: 50%; /* Make arrows circular */
-    transition: background 0.3s ease;
+/* Project title styling */
+.project-item h3 {
+    margin-top: 0;
+    color: var(--primary-color);
 }
 
-.carousel-control:hover {
-    background: var(--carousel-arrow-hover-bg);
+/* Styling for project links */
+.project-item a {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+    /* Add transition for hover effect */
+    transition: text-decoration 0.3s ease;
 }
 
-.carousel-control-prev {
-    left: 10px;
+.project-item a:hover {
+    text-decoration: underline;
 }
 
-.carousel-control-next {
-    right: 10px;
+
+/* Contact Section */
+#contact .contact-form {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
 }
 
-.carousel-indicators {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    justify-content: center;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    z-index: 10;
+.contact-form .form-group {
+    /* Spacing between form groups */
+    margin-bottom: 20px;
 }
 
-.carousel-indicators li {
-    margin: 0 5px;
-    width: 10px;
-    height: 10px;
-    background-color: var(--carousel-indicator-color);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.carousel-indicators li.active {
-    background-color: var(--carousel-indicator-active-color);
-}
-
-/* Contact form styling */
-
-
-
-/* Contact Form Styles */
-#contact-form label {
-    display: block; /* Labels on their own line */
+.contact-form label {
+    display: block;
+    /* Display labels above input fields */
     margin-bottom: 5px;
     font-weight: bold;
 }
 
-#contact-form input,
-#contact-form textarea {
-    width: 100%; /* Full width for input fields */
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form textarea {
+    width: calc(100% - 22px);
+    /* Adjust width for padding and border */
     padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #ccc;
     border-radius: 4px;
-    background-color: var(--card-bg-color); /* Use card background for input */
- color: var(--text-color); /* Use text color */
+    box-sizing: border-box;
+    /* Include padding and border in the element's total width and height */
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
-.dark-mode #contact-form input,
-.dark-mode #contact-form textarea {
-    border-color: var(--card-border-color); /* Dark mode border */
-    background-color: var(--card-bg-color); /* Dark mode background */
-    color: var(--text-color); /* Dark mode text */
+.contact-form textarea {
+    min-height: 150px;
+    resize: vertical;
 }
 
-#contact-form button {
- background-color: var(--accent-color); /* Primary color for button */
-    color: #fff; /* White text */
-    padding: 10px 20px;
+/* Styling for the contact form submit button */
+.contact-form button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.1em;
     transition: background-color 0.3s ease;
 }
 
-#contact-form button:hover {
- background-color: darken(var(--accent-color), 10%); /* Darken button on hover */
+.contact-form button:hover {
+    /* Darker shade on hover */
+    background-color: #0056b3;
 }
 
-.dark-mode #contact-form button {
- background-color: var(--primary-color); /* Primary color */
- color: #121212; /* Very dark text */
+/*==================== Footer ====================*/
+footer {
+    /* Background color for the footer */
+    background-color: var(--card-background);
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.dark-mode #contact-form button:hover {
-     background-color: lighten(var(--primary-color), 10%); /* Lighten button on hover */
+/* Styling for footer text */
+footer p {
+    margin: 0;
 }
 
-/* Ensure content is above the blurred background */
-body > * {
-    position: relative;
-    z-index: 1;
+/*==================== Responsive Design ====================*/
+/* Styles for screens smaller than 768px */
+@media (max-width: 768px) {
+    /* Adjust navigation layout for smaller screens */
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    nav ul {
+        margin-top: 15px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    nav ul li {
+        margin-left: 0;
+        margin-bottom: 10px;
+    }
+    /* Adjust about content layout */
+    .about-content {
+        flex-direction: column;
+    }
+}
+
+/* Styles for screens smaller than 480px */
+@media (max-width: 480px) {
+    /* Adjust logo font size */
+    nav .logo {
+        font-size: 1.5em;
+    }
+    /* Adjust section heading font size */
+
+    section h2 {
+        font-size: 2em;
+    }
+
+    .skill-item {
+        padding: 10px 20px;
+    }
 }

@@ -1,0 +1,58 @@
+header {
+    background-color: var(--card-background);
+    padding: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Navigation Bar */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Site Logo */
+nav .logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+/* Navigation Menu */
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+/* Navigation List Item */
+nav ul li {
+    margin-left: 20px;
+}
+
+/* Navigation Link */
+nav ul li a {
+    /* Inherits theme text color */
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+    color: var(--primary-color);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 1.2em;
+}

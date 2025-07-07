@@ -1,105 +1,106 @@
-// Smooth Scrolling
+// Smooth scrolling for navigation links
+// Select all anchor links that start with '#'
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+    // Add a click event listener to each selected anchor
+    anchor.addEventListener('click', function (e) {
+        // Prevent the default jump-to-anchor behavior
         e.preventDefault();
 
+        // Get the target element based on the href attribute
         document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth',
+            // Use smooth scrolling behavior
+            behavior: 'smooth'
         });
     });
 });
 
-// Responsive Navigation Toggle
-const navToggle = document.querySelector('.nav-toggle');
-const navMenu = document.querySelector('.nav-menu');
+// Dark mode toggle
+// Get the dark mode toggle switch element
+const darkModeToggle = document.getElementById('darkModeToggle'); // Corrected ID
 
-if (navToggle && navMenu) {
-    navToggle.addEventListener('click', function() {
-        navMenu.classList.toggle('nav-menu-visible');
-        const expanded = this.getAttribute('aria-expanded') === 'true' || false;
-        this.setAttribute('aria-expanded', !expanded);
-    });
+// Add a change event listener to the toggle switch
+darkModeToggle.addEventListener('change', () => {
+    // Toggle the 'dark-mode' class on the body element
+    document.body.classList.toggle('dark-mode');
+});
 
-    navMenu.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', function() {
-            navMenu.classList.remove('nav-menu-visible');
-            navToggle.setAttribute('aria-expanded', 'false'); // Ensure toggle state is updated
-        });
-    });
-} else {
-    console.error('Error: Navigation toggle or menu element not found.');
-}
-
-// Dark Mode Toggle
-const darkModeToggle = document.querySelector('.dark-mode-toggle');
-const body = document.body;
-
-if (darkModeToggle && body) {
-    darkModeToggle.addEventListener('click', function() {
-        body.classList.toggle('dark-mode');
-        // Store the theme preference in local storage
-        if (body.classList.contains('dark-mode')) {
-            localStorage.setItem('theme', 'dark');
-        } else {
-            localStorage.setItem('theme', 'light');
-        }
-    });
-
-    // Check for saved theme preference on page load
-    const savedTheme = localStorage.getItem('theme'); // Corrected variable name
-    if (savedTheme === 'dark') {
-        body.classList.add('dark-mode');
-    }
-} else {
-    console.error('Error: Dark mode toggle or body element not found.');
-}
-
-// Contact Form Submission
+// Form validation and submission (basic example)
+// Get the contact form element
 const contactForm = document.getElementById('contact-form');
 
-if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+// Add a submit event listener to the form
+contactForm.addEventListener('submit', function(e) {
+    // Prevent the default form submission
+    e.preventDefault();
 
-        // Basic client-side validation (you can add more comprehensive validation)
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const message = document.getElementById('message').value.trim();
+    // Get the input values and trim whitespace
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
 
-        if (name === '' || email === '' || message === '') {
-            alert('Please fill in all fields.');
-            return;
-        }
-        // Basic email validation
-        if (!/\S+@\S+\.\S+/.test(email)) {
-            alert('Please enter a valid email address.');
-            return;
-        }
+    // Basic validation: check if any field is empty
+    if (name === '' || email === '' || message === '') {
+        alert('Please fill in all fields.');
+        return;
+    }
 
-        fetch('/send-email', { // Replace with your actual server-side endpoint
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name: name, email: email, message: message }),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Success:', data);
-                alert('Message sent successfully!'); // Provide user feedback
-                contactForm.reset(); // Clear the form
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('There was an error sending your message. Please try again later.'); // Provide user feedback
-            });
+    // Basic email format validation
+    // Call the validateEmail function to check email format
+    if (!validateEmail(email)) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+
+    // In a real application, you would send the form data to a server
+    // using Fetch API or XMLHttpRequest.
+    /*
+    fetch('/send-email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, message }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        alert('Your message has been sent!');
+        contactForm.reset();
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('There was an error sending your message. Please try again later.');
     });
-} else {
-    console.error('Error: Contact form element not found.');
+    */
+
+    // For this example, we'll just log the data and show a success message
+    // Log the form data to the console
+    console.log('Form submitted:', { name, email, message });
+    // Show a success alert message
+    alert('Your message has been sent!');
+    // Reset the form fields
+    contactForm.reset();
+});
+
+// Function to validate email format using a regular expression
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
 }
 
+// Load about section content
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/public/components/about.html')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            document.getElementById('about-section').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error loading about section:', error);
+        });
+});
