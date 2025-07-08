@@ -47,14 +47,44 @@ body.dark-mode #saved-drawings h2 {
     color: var(--heading-color-dark);
 }
 
-#drawings-gallery img {
-    border: 1px solid var(--secondary-color); /* Borde sutil para las imágenes */
+#drawings-gallery .col-md-4 {
+    /* Estilos para el contenedor de cada dibujo */
+    display: flex;
+    justify-content: center; /* Centrar la imagen dentro de la columna */
+    /* Añadir un fondo o borde a cada contenedor de dibujo para destacarlo */
+    background-color: var(--white-color);
+    border: 1px solid var(--secondary-color);
     border-radius: 5px;
+    padding: 10px; /* Espaciado dentro del contenedor */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+     margin-bottom: 20px; /* Espacio entre los contenedores */
+}
+
+body.dark-mode #drawings-gallery .col-md-4 {
+    background-color: var(--card-background-dark);
+    border-color: var(--secondary-color-dark);
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+
+#drawings-gallery img {
+    max-width: 100%;
+    height: auto;
+    max-height: 200px; /* Limitar la altura máxima de la imagen (ajusta este valor) */
+    width: auto; /* Permitir que el ancho se ajuste automáticamente */
+    display: block;
+    border: none; /* Quitar el borde de la imagen si lo añadimos al contenedor */
+    border-radius: 3px;
     transition: transform 0.3s ease-in-out; /* Transición al pasar el mouse */
 }
 
 body.dark-mode #drawings-gallery img {
-    border-color: var(--secondary-color-dark); /* Borde en modo oscuro */
+    /* No se necesita cambiar el borde de la imagen si el borde está en el contenedor */
+}
+
+/* Estilo para el mensaje si no hay dibujos */
+#drawings-gallery p {
+    width: 100%; /* Asegura que el mensaje ocupe todo el ancho si está solo */
 }
 
 #drawings-gallery img:hover {
@@ -64,12 +94,16 @@ body.dark-mode #drawings-gallery img {
 /* Estilos para el botón de eliminar */
 #drawings-gallery .btn-danger {
     z-index: 1; /* Asegura que el botón esté por encima de la imagen */
+     position: absolute; /* Asegurar posicionamiento absoluto dentro del contenedor */
+    top: 10px; /* Ajustar posición desde arriba */
+    right: 10px; /* Ajustar posición desde la derecha */
 }
 
 /* Puedes añadir más estilos responsivos si es necesario */
 @media (max-width: 768px) {
     #drawings-gallery img {
-        margin-bottom: 15px; /* Ajusta el margen inferior en móviles */
+        /* Los estilos max-width y max-height ya deberían ayudar en móviles */
+        margin-bottom: 0; /* Quitar margen inferior de la imagen si el margen está en el contenedor */
     }
 }
 /* --- Fin Estilos para la sección de Dibujos Guardados --- */
