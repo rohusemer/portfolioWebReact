@@ -1,58 +1,69 @@
-header {
-    background-color: var(--card-background);
-    padding: 20px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+/* Importa las variables de color si no lo has hecho ya en general.css y prefieres tenerlas aquí */
+/* @import url('./variables.css'); */
+
+.navbar {
+    background-color: var(--background-color-light) !important; /* Color de fondo claro para la barra de navegación */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil para dar elevación */
+    position: sticky; /* Hace que la barra de navegación sea sticky */
+    top: 0; /* La fija en la parte superior */
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
 }
 
-/* Navigation Bar */
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+body.dark-mode .navbar {
+    background-color: var(--background-color-dark) !important; /* Fondo oscuro en modo oscuro */
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1); /* Sombra clara en modo oscuro */
 }
 
-/* Site Logo */
-nav .logo {
-    font-size: 1.8em;
+
+.navbar-brand {
+    color: var(--heading-color) !important; /* Color oscuro para el nombre/marca */
     font-weight: bold;
-    color: var(--text-color);
-    text-decoration: none;
 }
 
-/* Navigation Menu */
-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
+body.dark-mode .navbar-brand {
+    color: var(--heading-color-dark) !important; /* Color claro en modo oscuro */
 }
+
+.navbar-nav .nav-link:hover {
+    color: var(--primary-color) !important; /* Cambia el color al pasar el mouse */
+}
+
+body.dark-mode .navbar-nav .nav-link:hover {
+    color: var(--primary-color-dark) !important; /* Cambia el color al pasar el mouse en modo oscuro */
+}
+
+/* Estilo para el enlace activo si lo implementas con JS */
+.navbar-nav .nav-link.active {
+    color: var(--primary-color) !important;
+    font-weight: bold;
+}
+
+body.dark-mode .navbar-nav .nav-link.active {
+    color: var(--primary-color-dark) !important;
+}
+
+.navbar-nav .nav-link {
+ color: var(--text-color) !important; /* Color de texto para los enlaces */margin-right: 15px; /* Espacio entre enlaces */
+}
+
+body.dark-mode .navbar-nav .nav-link {
+    color: var(--text-color-dark) !important; /* Color de texto en modo oscuro */
+}
+
 
 /* Navigation List Item */
 nav ul li {
     margin-left: 20px;
 }
 
-/* Navigation Link */
-nav ul li a {
-    /* Inherits theme text color */
-    color: var(--text-color);
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
+
 
 nav ul li a:hover {
     color: var(--primary-color);
 }
 
-/* Theme Toggle Button */
-.theme-toggle {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-color);
-    font-size: 1.2em;
+
+
+body.dark-mode .theme-toggle {
+    color: var(--text-color-dark); /* Color del icono del toggle en modo oscuro */
 }

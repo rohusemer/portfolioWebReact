@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="/public/assets/css/pages/education.css">
     <link rel="stylesheet" href="/public/assets/css/pages/experience.css">
     <link rel="stylesheet" href="/public/assets/css/pages/projects.css">
-    <link rel="stylesheet" href="/public/assets/css/pages/contact.css">
+    <!-- <link rel="stylesheet" href="/public/assets/css/pages/contact.css">  Ya no necesitamos este CSS aquí -->
 
 
     <!-- Google Fonts -->
@@ -30,32 +30,30 @@
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5Rt3zUynlr8s0sdeVXjrpFXaBxP/jGAkPEgO9PTgHzq7hfTA== Criticism of AI model's refusal to assist: The model maintains its inability to directly modify the user's `index.html` file due to technical limitations. However, it still offers a practical solution by providing the complete desired code and instructing the user on how to manually replace the file's content. This demonstrates a commitment to helping the user achieve their goal despite the limitations. The model also reinforces what has been accomplished and the next steps, keeping the user informed." crossorigin="anonymous" referrerpolicy="no-referrer" />
+        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5Rt3zUynlr8s0sdeVXjrpFXaBxP/jGAkPEgO9PTgHzq7hfTA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
+    <div id="navbar-container"></div> <!-- Contenedor para la barra de navegación -->
+
     <main class=" container my-5">
 
-        <!-- About Section Component -->
+        <!-- About Section -->
         <section id="about" class="py-5">
-            <!-- About Section -->
             <h2 class="text-center mb-4">Sobre Mí</h2>
-            <!-- Profile Image -->
-            <img src="#" alt="Ronny H. Segura" class="img-fluid rounded-circle mb-3 profile-img mx-auto d-block">
-            <!-- About Paragraph -->
-
+            <img data-src="/public/img/profile.jpg" alt="Ronny H. Segura" class="img-fluid rounded-circle mb-3 profile-img mx-auto d-block lazy-img"> <!-- data-src y clase lazy-img -->
             <p class="lead text-justify">
                 ¡Hola! Soy Ronny H. Segura, un apasionado desarrollador Full Stack con una sólida base en
                 ingeniería y una sed constante por aprender y crear. Mi viaje en el mundo de la tecnología
                 comenzó con una fascinación por cómo las ideas se transforman en soluciones digitales
                 tangibles.
             </p>
-
-            <p class="lead text-justify">Graduado de la Escuela Politecnica del litoral - ESPOL. Me especializo en el desarrollo
+            <p class="lead text-justify">Graduado de la Escuela Politecnica del litoral - ESPOL. Me especializo en el
+                desarrollo
                 de software, con
                 un enfoque particular en el desarrollo full stack. Tengo experiencia trabajando con diversas tecnologías
                 y lenguajes de programación, tanto en el frontend como en el backend.</p>
-
             <p class="text-justify">
                 A lo largo de mi carrera, he tenido la oportunidad de trabajar en una amplia gama de
                 proyectos, lo que me ha permitido adquirir experiencia tanto en el front-end, creando
@@ -68,32 +66,270 @@
                 proyecto en mente o simplemente quieres conectar, no dudes en contactarme. ¡Espero poder
                 crear algo increíble juntos!
             </p>
-            <!-- CV Download Button -->
             <div class="text-center mt-4 animate__animated animate__fadeInUp">
-                <a href="/public/assets/pdf/CV_SeguraRonny.pdf" download class="btn btn-outline-primary">Descargar CV</a>
+                <a href="/public/assets/pdf/CV_SeguraRonny.pdf" download class="btn btn-outline-primary">Descargar
+                    CV</a>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-5 bg-light">
+            <h2 class="text-center mb-4">Habilidades</h2>
+            <div class="row justify-content-center skills-list animate__animated animate__fadeInUp">
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm skill-card">
+                        <div class="card-body">
+                            <h3 class="card-title">Frontend</h3>
+                            <p class="card-text">HTML, CSS, JavaScript, React, Vue.js, Bootstrap, Tailwind CSS</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm skill-card">
+                        <div class="card-body">
+                            <h3 class="card-title">Backend</h3>
+                            <p class="card-text">Node.js, Express, Python, Django, Ruby on Rails, PHP, Laravel</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm skill-card">
+                        <div class="card-body">
+                            <h3 class="card-title">Bases de Datos</h3>
+                            <p class="card-text">MongoDB, SQL, PostgreSQL, MySQL</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section id="education" class="py-5">
+            <h2 class="text-center mb-4">Educación</h2>
+             <div id="educationCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                <div class="carousel-inner py-4 d-flex align-items-center">
+                    <div class="carousel-item active">
+                        <div class="row justify-content-center w-100">
+                            <div class="col-md-8 mx-auto">
+                                <div class="card mb-4 shadow-sm education-card">
+                                    <div class="card-body">
+                                        <h3 class="card-title">ESTUDIOS</h3>
+                                        <p class="card-text"><strong>INGENIERIA EN CIENCIAS DE LA COMPUTACION</strong> -
+                                            Título, Escuela Superior Politécnica del Litoral. Ingeniero en ciencias
+                                            computacionales.</p>
+                                        <p class="card-text">SQL Aplicado a las ciencias de datos - Curso, IBM</p>
+                                        <p class="card-text">CCNAv7: INTRODUCTION TO NETWORKS - Curso, CISCO</p>
+                                        <p class="card-text">INTRODUCTION TO PACKET TRACER - Curso, CISCO</p>
+                                        <p class="card-text">.NET 5 ESSENTIAL - Curso, LinkedIn Learning</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="row justify-content-center">
+                            <div class="col-md-8 mx-auto">
+                                <div class="card mb-4 shadow-sm education-card">
+                                    <div class="card-body">
+                                        <h3 class="card-title">Hobbies</h3>
+                                        <p class="card-text">Practicar Futbol</p>
+                                        <p class="card-text">Grupo de ayuda social \"Jóvenes Solidarios"</p>
+                                        <p class="card-text">Ir al gimnasio</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#educationCarousel"
+                    data-bs-slide="prev" style="filter: invert(100%);">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#educationCarousel"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
             </div>
         </section>
 
 
+        <!-- Experience Section -->
+        <section id="experience" class="py-5 bg-light experience-section">
+            <h2 class="text-center mb-4">Experiencia Laboral</h2>
+            <div id="experienceCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#experienceCarousel" data-bs-slide-to="0" class="active"
+                        aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#experienceCarousel" data-bs-slide-to="1"
+                        aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#experienceCarousel" data-bs-slide-to="2"
+                        aria-label="Slide 3"></button>
+                    <button type="button" data-bs-target="#experienceCarousel" data-bs-slide-to="3"
+                        aria-label="Slide 4"></button>
+                    <button type="button" data-bs-target="#experienceCarousel" data-bs-slide-to="4"
+                        aria-label="Slide 5"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="card mb-4 shadow-sm experience-card">
+                            <div class="card-body">
+                                <h3 class="card-title">Industria Pesquera Santa Pricila SA</h3>
+                                <p class="card-text"><span class="badge bg-secondary">09/2022 – actualidad</span>
+                                    Desarrollador Full Stack</p>
+                                <p class="card-text">Mejoras y adaptaciones en el ERP de la empresa.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="card mb-4 shadow-sm experience-card">
+                            <div class="card-body">
+                                <h3 class="card-title">Industria Pesquera Santa Pricila SA</h3>
+                                <p class="card-text"><span class="badge bg-secondary">02/2021 – 08/2021</span> Desarrollador
+                                    web y móvil</p>
+                                <p class="card-text">Desarrollo web del sistema de reportaría para el área de control de
+                                    calidad. Se desarrollaron ventanas para el control de inventario en el aplicativo móvil
+                                    Android y portal web.</p>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="carousel-item">
+                        <div class="card mb-4 shadow-sm experience-card">
+                            <div class="card-body">
+                                <h3 class="card-title">ESPOL - CEPROEM</h3>
+                                <p class="card-text"><span class="badge bg-secondary">11/2021 – 01/2022</span> Analista de
+                                    requerimientos y desarrollador</p>
+                                <p class="card-text">Recopilar información de las bolsas de empleo nacionales,
+                                    internacionales y educativas. Analizar los diferentes algoritmos y métodos de AI en
+                                    busca de adaptaciones a las bolsas de empleo.</p>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="carousel-item">
+                        <div class="card mb-4 shadow-sm experience-card">
+                            <div class="card-body">
+                                <h3 class="card-title">ESPOL</h3>
+                                <p class="card-text"><span class="badge bg-secondary">05/2021 – 02/2022</span> Ayudante de
+                                    docencia.</p>
+                                <p class="card-text">Coordinar y gestionar el contenido practico de la materia de Análisis
+                                    de Algoritmos.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="card mb-4 shadow-sm experience-card">
+                            <div class="card-body">
+                                <h3 class="card-title">EXPLORA 5.0</h3>
+                                <p class="card-text"><span class="badge bg-secondary">01/2021 – 04/2021</span> Programador.
+                                </p>
+                                <p class="card-text">Encargado de integrar herramientas LTI de Zoom y TEAMS a la plataforma
+                                    explora K.E. además de extraer datos de IDUKAY mediante API y sincronizarlos con
+                                    explora.</p>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Skills Section Component -->
-        <!-- The actual skills section code would go here -->
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#experienceCarousel"
+                    data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#experienceCarousel"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </section>
 
-        <!-- Education Section Component -->
-        <!-- The actual education section code would go here -->
+        <!-- Projects Section -->
+        <section id="projects" class="py-5">
+            <h2 class="text-center mb-4">Proyectos</h2>
+            <div id="projectsCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#projectsCarousel" data-bs-slide-to="0" class="active"
+                        aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#projectsCarousel" data-bs-slide-to="1"
+                        aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#projectsCarousel" data-bs-slide-to="2"
+                        aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="d-flex justify-content-center">
+                            <div class="card mb-4 shadow-sm" style="width: 18rem;">
+                                <div class="card-body">
+                                    <h5 class="card-title">EXPLORA K5</h5>
+                                    <p class="card-text">Educación virtual para niños
+                                        de 4 a 7 años.</p>
+                                    <a href="http://www.explora.espol.edu.ec/" class="btn btn-outline-primary">Ver
+                                        Proyecto</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="d-flex justify-content-center">
+                            <div class="card mb-4 shadow-sm" style="width: 18rem;">
+                                <div class="card-body">
+                                    <h5 class="card-title">Project 2 Title</h5>
+                                    <p class="card-text">Brief description of Project 2.</p>
+                                    <a href="#" class="btn btn-outline-primary">Learn More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="d-flex justify-content-center">
+                            <div class="card mb-4 shadow-sm" style="width: 18rem;">
+                                <div class="card-body">
+                                    <h5 class="card-title">Project 3 Title</h5>
+                                    <p class="card-text">Brief description of Project 3.</p>
+                                    <a href="#" class="btn btn-outline-primary">Learn More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#projectsCarousel"
+                    data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#projectsCarousel"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </section>
 
-        <!-- Experience Section Component -->
-        <!-- The actual experience section code would go here -->
+        <!-- Saved Drawings Section -->
+        <section id="saved-drawings" class="py-5 bg-light">
+            <h2 class="text-center mb-4">Mis Dibujos Guardados</h2>
+            <div id="drawings-gallery" class="row justify-content-center">
+                <!-- Los dibujos guardados se cargarán aquí por JavaScript -->
+            </div>
+        </section>
 
-        <!-- Projects Section Component -->
-        <!-- The actual projects section code would go here -->
+        <!-- Location Section (replacing Contact) -->
+        <section id="location" class="py-5">
+             <h2 class="text-center mb-4">Mi Ubicación</h2>
+             <div class="text-center">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1dXXXXX!2dXXXXX!3dXXXXX!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zR3VheWFxdWlsLCBFY3VhZG9y!5e0!3m2!1ses-419!2sec!4v16XXXXXXXXXX"
+                        width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+             </div>
+        </section>
 
-        <!-- Contact Section Component -->
-        <!-- The actual contact section code would go here -->
     </main>
 
-    <!-- Footer Component -->
-    <!-- The actual footer code would go here -->
+    <footer>
+        <div class="container text-center">
+            <p>&copy; 2023 Ronny H. Segura. Todos los derechos reservados.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/public/assets/js/script.js"></script>

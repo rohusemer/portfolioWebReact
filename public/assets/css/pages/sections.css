@@ -1,0 +1,75 @@
+/* public/assets/css/pages/sections.css */
+
+/* Asegura que los elementos animados estén ocultos antes de la animación */
+.animate__animated {
+    opacity: 0;
+}
+
+/* Ejemplo de una regla para un tipo específico de animación */
+.animate__fadeInUp {
+    animation-name: fadeInUp;
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 100%, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+/* Puedes agregar más reglas para otros tipos de animaciones que quieras usar */
+
+/* --- Estilos para la sección de Dibujos Guardados --- */
+#saved-drawings {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    background-color: var(--background-color); /* Usar variable para el color de fondo */
+}
+
+body.dark-mode #saved-drawings {
+    background-color: var(--background-color-dark); /* Fondo oscuro en modo oscuro */
+}
+
+#saved-drawings h2 {
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--heading-color); /* Usar variable para el color del encabezado */
+}
+
+body.dark-mode #saved-drawings h2 {
+    color: var(--heading-color-dark);
+}
+
+#drawings-gallery img {
+    border: 1px solid var(--secondary-color); /* Borde sutil para las imágenes */
+    border-radius: 5px;
+    transition: transform 0.3s ease-in-out; /* Transición al pasar el mouse */
+}
+
+body.dark-mode #drawings-gallery img {
+    border-color: var(--secondary-color-dark); /* Borde en modo oscuro */
+}
+
+#drawings-gallery img:hover {
+    transform: scale(1.03); /* Efecto de zoom ligero al pasar el mouse */
+}
+
+/* Estilos para el botón de eliminar */
+#drawings-gallery .btn-danger {
+    z-index: 1; /* Asegura que el botón esté por encima de la imagen */
+}
+
+/* Puedes añadir más estilos responsivos si es necesario */
+@media (max-width: 768px) {
+    #drawings-gallery img {
+        margin-bottom: 15px; /* Ajusta el margen inferior en móviles */
+    }
+}
+/* --- Fin Estilos para la sección de Dibujos Guardados --- */

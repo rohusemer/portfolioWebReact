@@ -1,0 +1,126 @@
+/* public/assets/css/pages/drawing-board.css */
+
+/* Import variables if needed */
+/* @import url('../layout/variables.css'); */
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Open Sans', sans-serif;
+}
+body.dark-mode {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+h1 {
+    color: var(--heading-color, #333); /* Use variable or fallback */
+    margin-bottom: 20px;
+}
+
+#drawingCanvas {
+    border: 1px solid var(--dark-color, #333); /* Use variable or fallback */
+    background-color: var(--white-color, #ffffff); /* Use variable or fallback */
+    cursor: crosshair;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.2); /* Glassmorphism background */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px); /* Glassmorphism blur */
+    -webkit-backdrop-filter: blur(5px); /* Safari support */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Glassmorphism border */
+}
+
+.controls button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: var(--primary-color, #007bff); /* Use variable or fallback */
+    color: var(--white-color, #fff); /* Use variable or fallback */
+    transition: background-color 0.3s ease;
+}
+
+.controls button:hover {
+    background-color: var(--primary-color-dark, #0056b3); /* Slightly darker primary on hover */
+}
+
+.controls input[type="color"] {
+    padding: 5px;
+    border: 1px solid var(--secondary-color, #ccc); /* Use variable or fallback */
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: var(--white-color, #fff); /* Use variable or fallback */
+}
+
+.controls input[type="number"] {
+    padding: 5px;
+    border: 1px solid var(--secondary-color, #ccc); /* Use variable or fallback */
+    border-radius: 5px;
+}
+
+.controls-container {
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo semi-transparente para efecto glass */
+    backdrop-filter: blur(10px); /* Efecto de desenfoque para glassmorphism */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Borde sutil */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra */
+}
+
+body.dark-mode .controls-container {
+    background-color: rgba(0, 0, 0, 0.3); /* Fondo semi-transparente oscuro */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.controls-container h2 {
+    color: var(--heading-color);
+    margin-top: 0;
+}
+
+body.dark-mode .controls-container h2 {
+    color: var(--heading-color-dark);
+}
+
+.controls-container label {
+    margin-right: 10px;
+    color: var(--text-color);
+}
+
+body.dark-mode .controls-container label {
+    color: var(--text-color-dark);
+}
+
+/* Estilos para el canvas */
+#drawingCanvas {
+    border: 1px solid var(--dark-color); /* Borde para el canvas */
+    display: block; /* Elimina espacio extra debajo del canvas */
+    margin: 0 auto; /* Centra el canvas */
+    background-color: var(--white-color); /* Fondo blanco para dibujar */
+}
+
+body.dark-mode #drawingCanvas {
+    border-color: var(--text-color-dark); /* Borde más claro en modo oscuro */
+    background-color: var(--background-color-dark); /* Fondo oscuro para dibujar en modo oscuro */
+}
+
+/* Estilos responsivos para el canvas */
+@media (max-width: 768px) {
+    #drawingCanvas {
+        width: 95%; /* Ajusta el ancho en pantallas pequeñas */
+        height: 300px; /* Ajusta la altura si es necesario */
+    }
+}

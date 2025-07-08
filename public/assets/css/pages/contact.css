@@ -1,0 +1,120 @@
+/* public/assets/css/pages/contact.css */
+
+/* Importa las variables de color si no lo has hecho ya en general.css */
+/* @import url('../layout/variables.css'); */
+
+#contact-page {
+    padding: 60px 0;
+    /* background-color: var(--background-color); /* Si quieres un fondo diferente al general */
+}
+
+#contact-page h2 {
+    color: var(--heading-color); /* Usar variable para el color del encabezado */
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+/* Estilos para el formulario */
+#contact-page form {
+    /* background-color: var(--white-color); /* Usar variable para el fondo del formulario si es diferente al fondo general */
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#contact-page form .form-label {
+    color: var(--text-color); /* Usar variable para el color de las etiquetas del formulario */
+    font-weight: bold;
+}
+
+#contact-page form .form-control {
+    background-color: var(--white-color); /* Usar variable para el fondo de los inputs */
+    color: var(--text-color); /* Usar variable para el color del texto del input */
+    border-color: var(--secondary-color); /* Usar variable para el color del borde */
+    border-radius: 4px;
+}
+
+#contact-page form .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-rgb), .25); /* Usar variable para la sombra al enfocar */
+}
+
+#contact-page form .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color); /* Usar variable para el borde del botón primario */
+}
+
+#contact-page form .btn-primary:hover {
+    background-color: var(--dark-color); /* Darker shade on hover */
+    border-color: var(--dark-color);
+}
+
+
+/* Estilos para la información de contacto */
+#contact-page .mt-4.text-center p {
+    color: var(--text-color); /* Usar variable para el color del texto de la información de contacto */
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+#contact-page .mt-4.text-center a {
+    color: var(--primary-color); /* Usar variable para el color de los enlaces de contacto */
+    text-decoration: none;
+}
+
+#contact-page .mt-4.text-center a:hover {
+    color: var(--dark-color); /* Cambiar color al pasar el mouse */
+}
+
+/* Estilos para los iconos en la información de contacto */
+#contact-page .mt-4.text-center i {
+    color: var(--primary-color);
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+/* Estilos para el modo oscuro */
+body.dark-mode #contact-page h2 {
+    color: var(--heading-color-dark);
+}
+
+body.dark-mode #contact-page form .form-label {
+    color: var(--text-color-dark);
+}
+
+body.dark-mode #contact-page form .form-control {
+    background-color: var(--card-background-dark);
+    color: var(--text-color-dark);
+    border-color: var(--secondary-color-dark);
+}
+
+body.dark-mode #contact-page form .form-control:focus {
+    border-color: var(--primary-color-dark);
+    box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-dark-rgb), .25); /* Asegúrate de tener estas variables RGBA si usas sombras con color */
+}
+
+body.dark-mode #contact-page form .btn-primary {
+    background-color: var(--primary-color-dark);
+    border-color: var(--primary-color-dark);
+}
+
+body.dark-mode #contact-page form .btn-primary:hover {
+    background-color: var(--secondary-color-dark);
+    border-color: var(--secondary-color-dark);
+}
+
+body.dark-mode #contact-page .mt-4.text-center p {
+    color: var(--text-color-dark);
+}
+
+body.dark-mode #contact-page .mt-4.text-center a {
+    color: var(--primary-color-dark);
+}
+
+body.dark-mode #contact-page .mt-4.text-center a:hover {
+    color: var(--secondary-color-dark);
+}
+
+body.dark-mode #contact-page .mt-4.text-center i {
+    color: var(--primary-color-dark); /* Color de los iconos en modo oscuro */
+}

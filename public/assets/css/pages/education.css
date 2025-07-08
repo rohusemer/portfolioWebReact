@@ -1,0 +1,41 @@
+/* Importa las variables de color y otros estilos si es necesario */
+/* @import url('../layout/variables.css'); */
+
+#education {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+.education-card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.3s ease-in-out;
+    background-color: var(--white-color); /* Usa variable para fondo */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Usa variable o define una nueva para sombra si prefieres */
+}
+
+.education-card:hover {
+    transform: translateY(-5px); /* Efecto al pasar el mouse */
+}
+
+body.dark-mode .education-card {
+ background-color: var(--card-background-dark);
+ box-shadow: var(--card-shadow-dark);
+}
+
+.education-card .card-title {
+    color: var(--heading-color); /* Usa variable para el título */
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.education-card .card-text {
+    color: var(--text-color); /* Usa variable para el texto */
+}
+
+/* Estilos responsivos para el carrusel si es necesario ajustar algo */
+@media (max-width: 768px) {
+    .education-card {
+        margin-bottom: 1.5rem;
+    }
+}
