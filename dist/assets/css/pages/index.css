@@ -1,0 +1,256 @@
+/* public/assets/css/pages/index.css */
+
+/* Main layout using Flexbox */
+.main-layout {
+    display: flex;
+    min-height: 100vh; /* Ensure the layout takes at least the full viewport height */
+    background-color: var(--background-color); /* Use general background color */
+    color: var(--text-color); /* Use general text color */
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 250px; /* Fixed width for the sidebar */
+    background-color: var(--sidebar-background-color, #f8f9fa); /* Default light background or variable */
+    padding: 20px;
+    display: flex; /* Use flexbox for internal alignment */
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center items horizontally */
+    border-right: 1px solid var(--border-color, #dee2e6); /* Optional subtle border */
+}
+
+body.dark-mode .sidebar {
+    background-color: var(--sidebar-background-color-dark, #343a40); /* Dark mode background */
+    border-right-color: var(--border-color-dark, #454d55);
+}
+
+
+.sidebar .logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    margin-bottom: 40px;
+    color: var(--heading-color); /* Use heading color variable */
+}
+
+body.dark-mode .sidebar .logo {
+    color: var(--heading-color-dark);
+}
+
+
+.sidebar .main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+.sidebar .main-nav li {
+    margin-bottom: 15px;
+}
+
+.sidebar .main-nav li a {
+    text-decoration: none;
+    color: var(--text-color); /* Use text color variable */
+    font-size: 1.1em;
+    transition: color 0.3s ease;
+}
+
+body.dark-mode .sidebar .main-nav li a {
+    color: var(--text-color-dark);
+}
+
+.sidebar .main-nav li a:hover {
+    color: var(--primary-color); /* Use primary color variable (yellow) on hover */
+}
+
+
+.sidebar .social-icons {
+    margin-top: auto; /* Push social icons to the bottom */
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px; /* Space between icons */
+}
+
+.sidebar .social-icons a {
+    color: var(--text-color); /* Use text color variable */
+    font-size: 1.3em;
+    transition: color 0.3s ease;
+    text-decoration: none;
+}
+
+body.dark-mode .sidebar .social-icons a {
+    color: var(--text-color-dark);
+}
+
+.sidebar .social-icons a:hover {
+    color: var(--primary-color); /* Use primary color variable on hover */
+}
+
+.sidebar .copyright {
+    font-size: 0.8em;
+    color: var(--secondary-text-color, #6c757d); /* Use a secondary text color variable */
+    text-align: center;
+}
+
+body.dark-mode .sidebar .copyright {
+     color: var(--secondary-text-color-dark, #adb5bd);
+}
+
+
+/* Main content styles */
+.content {
+    flex-grow: 1; /* Take the remaining width */
+    padding: 40px; /* Add some padding */
+    overflow-y: auto; /* Add scroll if content overflows vertically */
+}
+
+
+/* Home section styles */
+#home.home-section {
+    display: flex;
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    min-height: calc(100vh - 80px); /* Adjust height considering main padding */
+}
+
+.profile-area {
+    display: flex; /* Arrange image and text side-by-side */
+    align-items: center; /* Align items vertically */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 40px; /* Space between image and text */
+}
+
+.profile-area .image-container {
+    position: relative; /* Needed for absolute positioning of borders */
+    width: 300px; /* Adjust size as needed */
+    height: 300px; /* Adjust size as needed */
+}
+
+.profile-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensure the image covers the container */
+    border: 3px solid var(--dark-color); /* Dark border around the image */
+    padding: 10px; /* Padding inside the border */
+}
+
+body.dark-mode .profile-image {
+    border-color: var(--text-color-dark); /* Adjust border color in dark mode */
+}
+
+/* Yellow border elements (using pseudo-elements might be cleaner, but using divs for simplicity here) */
+.image-container .border-top-right {
+    position: absolute;
+    top: -10px; /* Adjust position */
+    right: -10px; /* Adjust position */
+    width: 80px; /* Length of the border segment */
+    height: 80px; /* Length of the border segment */
+    border-top: 3px solid var(--primary-color); /* Top border */
+    border-right: 3px solid var(--primary-color); /* Right border */
+}
+
+.image-container .border-bottom-left {
+    position: absolute;
+    bottom: -10px; /* Adjust position */
+    left: -10px; /* Adjust position */
+    width: 80px; /* Length of the border segment */
+    height: 80px; /* Length of the border segment */
+    border-bottom: 3px solid var(--primary-color); /* Bottom border */
+    border-left: 3px solid var(--primary-color); /* Left border */
+}
+
+
+.text-content {
+    max-width: 500px; /* Limit text width */
+}
+
+.text-content h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: var(--heading-color); /* Use heading color variable */
+}
+
+body.dark-mode .text-content h1 {
+    color: var(--heading-color-dark);
+}
+
+.text-content p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: var(--text-color); /* Use text color variable */
+}
+
+body.dark-mode .text-content p {
+    color: var(--text-color-dark);
+}
+
+
+/* Basic Responsiveness */
+@media (max-width: 768px) {
+    .main-layout {
+        flex-direction: column; /* Stack sidebar and content */
+    }
+
+    .sidebar {
+        width: 100%; /* Full width sidebar */
+        padding: 15px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color); /* Add bottom border */
+    }
+
+    body.dark-mode .sidebar {
+        border-bottom-color: var(--border-color-dark);
+    }
+
+
+    .sidebar .logo,
+    .sidebar .social-icons,
+    .sidebar .copyright {
+        margin-bottom: 15px; /* Adjust spacing */
+    }
+
+    .sidebar .main-nav ul {
+        display: flex; /* Arrange nav items horizontally */
+        flex-wrap: wrap; /* Allow wrapping if needed */
+        justify-content: center; /* Center nav items */
+        gap: 10px; /* Space between nav items */
+        margin-bottom: 15px;
+    }
+
+     .sidebar .main-nav li {
+         margin-bottom: 0; /* Remove bottom margin for horizontal layout */
+     }
+
+
+    .profile-area {
+        flex-direction: column; /* Stack image and text vertically */
+        text-align: center; /* Center text content */
+    }
+
+     .profile-area .image-container {
+         width: 200px; /* Adjust image size for smaller screens */
+         height: 200px;
+     }
+
+     /* Adjust border positions for smaller image size */
+     .image-container .border-top-right,
+     .image-container .border-bottom-left {
+          width: 50px;
+          height: 50px;
+          top: -5px;
+          right: -5px;
+     }
+      .image-container .border-bottom-left {
+           bottom: -5px;
+           left: -5px;
+      }
+
+    .text-content h1 {
+        font-size: 2em; /* Adjust heading size */
+    }
+     .text-content p {
+         font-size: 1em; /* Adjust text size */
+     }
+}

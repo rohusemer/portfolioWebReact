@@ -1,0 +1,13 @@
+footer {
+    /* Background color for the footer */
+    background-color: var(--card-background);
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for footer text */
+footer p {
+    margin: 0;
+}
