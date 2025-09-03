@@ -100,19 +100,6 @@
         }
         updateDarkModeIcon();
 
-        // Hide header on scroll
-        let lastScrollTop = 0;
-        const header = document.getElementById('main-header');
-        window.addEventListener('scroll', function() {
-            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            if (scrollTop > lastScrollTop) {
-                header.style.transform = 'translateY(-100%)';
-            } else {
-                header.style.transform = 'translateY(0)';
-            }
-            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-        });
-
         // Active link highlighting for the homepage
         if (isHomePage) {
             const sections = document.querySelectorAll('section[id]');

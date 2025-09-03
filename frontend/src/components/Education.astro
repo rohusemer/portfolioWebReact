@@ -1,4 +1,5 @@
 ---
+import Card from './Card.astro';
 ---
 <section id="education" class="py-20 section-hidden">
     <h2 class="text-center text-4xl font-bold mb-12 text-primary">Educación</h2>
@@ -9,70 +10,50 @@
         <div class="mb-8 flex justify-between items-center w-full right-timeline">
             <div class="order-1 w-5/12"></div>
             <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
-            <div class="order-1 bg-light-bg/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl w-5/12 px-6 py-4 card-container">
-                <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-                <div class="flex justify-center mb-4">
-                    <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="hover" colors="primary:var(--primary),secondary:var(--accent)" class="animated-icon"></lord-icon>
-                </div>
-                <h3 class="mb-3 font-bold text-dark-text dark:text-light-text text-xl text-center">INGENIERIA EN CIENCIAS DE LA COMPUTACION</h3>
-                <p class="text-sm text-center leading-snug tracking-wide text-dark-text/90 dark:text-light-text/90">Título, Escuela Superior Politécnica del Litoral. Ingeniero en ciencias computacionales.</p>
-            </div>
+            <Card 
+                title="INGENIERIA EN CIENCIAS DE LA COMPUTACION"
+                description="Título, Escuela Superior Politécnica del Litoral. Ingeniero en ciencias computacionales."
+            />
         </div>
 
         <!-- Timeline Item 2 -->
         <div class="mb-8 flex justify-between flex-row-reverse items-center w-full left-timeline">
             <div class="order-1 w-5/12"></div>
             <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
-            <div class="order-1 bg-light-bg/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl w-5/12 px-6 py-4 card-container">
-                <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-                <div class="flex justify-center mb-4">
-                    <lord-icon src="https://cdn.lordicon.com/zrtfxhfe.json" trigger="hover" colors="primary:var(--primary),secondary:var(--accent)" class="animated-icon"></lord-icon>
-                </div>
-                <h3 class="mb-3 font-bold text-dark-text dark:text-light-text text-xl text-center">SQL Aplicado a las ciencias de datos</h3>
-                <p class="text-sm text-center leading-snug tracking-wide text-dark-text/90 dark:text-light-text/90">Curso, IBM</p>
-            </div>
+            <Card 
+                title="SQL Aplicado a las ciencias de datos"
+                description="Curso, IBM"
+            />
         </div>
         
         <!-- Timeline Item 3 -->
         <div class="mb-8 flex justify-between items-center w-full right-timeline">
             <div class="order-1 w-5/12"></div>
             <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
-            <div class="order-1 bg-light-bg/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl w-5/12 px-6 py-4 card-container">
-                <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-                <div class="flex justify-center mb-4">
-                    <lord-icon src="https://cdn.lordicon.com/stwssbem.json" trigger="hover" colors="primary:var(--primary),secondary:var(--accent)" class="animated-icon"></lord-icon>
-                </div>
-                <h3 class="mb-3 font-bold text-dark-text dark:text-light-text text-xl text-center">CCNAv7: INTRODUCTION TO NETWORKS</h3>
-                <p class="text-sm text-center leading-snug tracking-wide text-dark-text/90 dark:text-light-text/90">Curso, CISCO</p>
-            </div>
+            <Card 
+                title="CCNAv7: INTRODUCTION TO NETWORKS"
+                description="Curso, CISCO"
+            />
         </div>
 
         <!-- Timeline Item 4 -->
         <div class="mb-8 flex justify-between flex-row-reverse items-center w-full left-timeline">
             <div class="order-1 w-5/12"></div>
             <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
-            <div class="order-1 bg-light-bg/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl w-5/12 px-6 py-4 card-container">
-                <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-                <div class="flex justify-center mb-4">
-                    <lord-icon src="https://cdn.lordicon.com/qosfuzss.json" trigger="hover" colors="primary:var(--primary),secondary:var(--accent)" class="animated-icon"></lord-icon>
-                </div>
-                <h3 class="mb-3 font-bold text-dark-text dark:text-light-text text-xl text-center">INTRODUCTION TO PACKET TRACER</h3>
-                <p class="text-sm text-center leading-snug tracking-wide text-dark-text/90 dark:text-light-text/90">Curso, CISCO</p>
-            </div>
+            <Card 
+                title="INTRODUCTION TO PACKET TRACER"
+                description="Curso, CISCO"
+            />
         </div>
 
          <!-- Timeline Item 5 -->
          <div class="mb-8 flex justify-between items-center w-full right-timeline">
             <div class="order-1 w-5/12"></div>
             <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
-            <div class="order-1 bg-light-bg/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl w-5/12 px-6 py-4 card-container">
-                <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-                <div class="flex justify-center mb-4">
-                    <lord-icon src="https://cdn.lordicon.com/jxwksgwv.json" trigger="hover" colors="primary:var(--primary),secondary:var(--accent)" class="animated-icon"></lord-icon>
-                </div>
-                <h3 class="mb-3 font-bold text-dark-text dark:text-light-text text-xl text-center">.NET 5 ESSENTIAL</h3>
-                <p class="text-sm text-center leading-snug tracking-wide text-dark-text/90 dark:text-light-text/90">Curso, LinkedIn Learning</p>
-            </div>
+            <Card 
+                title=".NET 5 ESSENTIAL"
+                description="Curso, LinkedIn Learning"
+            />
         </div>
     </div>
 </section>

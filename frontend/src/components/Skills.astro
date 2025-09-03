@@ -1,49 +1,40 @@
 ---
+import Card from './Card.astro';
 ---
 <section id="skills" class="py-20 section-hidden">
     <h2 class="text-center text-4xl font-bold mb-12 text-primary">Habilidades</h2>
-    <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="relative container mx-auto px-4">
+        <div class="absolute h-full border-l-2 border-primary left-1/2 transform -translate-x-1/2"></div>
         
-        <div class="relative bg-glass backdrop-blur-glass border-glass rounded-lg shadow-xl p-6 overflow-hidden card-container">
-            <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-            <div class="absolute top-1 right-1 text-5xl text-dark-text/10 dark:text-light-text/10 skill-icon">
-                <lord-icon
-                    src="https://cdn.lordicon.com/lupuorrc.json"
-                    trigger="hover"
-                    colors="primary:var(--primary),secondary:var(--accent)"
-                    style="width:60px;height:60px">
-                </lord-icon>
-            </div>
-            <h3 class="relative text-xl font-bold text-dark-text dark:text-light-text mb-2">Frontend</h3>
-            <p class="relative text-dark-text/90 dark:text-light-text/90">HTML, CSS, JavaScript, Astro, React, Vue.js, Bootstrap, Tailwind CSS</p>
+        <!-- Timeline Item 1: Frontend -->
+        <div class="mb-8 flex justify-between items-center w-full right-timeline">
+            <div class="order-1 w-5/12"></div>
+            <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
+            <Card 
+                title="Frontend"
+                description="HTML, CSS, JavaScript, Astro, React, Vue.js, Bootstrap, Tailwind CSS"
+            />
         </div>
 
-        <div class="relative bg-glass backdrop-blur-glass border-glass rounded-lg shadow-xl p-6 overflow-hidden card-container">
-            <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-            <div class="absolute top-1 right-1 text-5xl text-dark-text/10 dark:text-light-text/10 skill-icon">
-                <lord-icon
-                    src="https://cdn.lordicon.com/futocyqk.json"
-                    trigger="hover"
-                    colors="primary:var(--primary),secondary:var(--accent)"
-                    style="width:60px;height:60px">
-                </lord-icon>
-            </div>
-            <h3 class="relative text-xl font-bold text-dark-text dark:text-light-text mb-2">Backend</h3>
-            <p class="relative text-dark-text/90 dark:text-light-text/90">Node.js, Express, Python, Django, Java, Spring Boot, PHP, Laravel</p>
+        <!-- Timeline Item 2: Backend -->
+        <div class="mb-8 flex justify-between flex-row-reverse items-center w-full left-timeline">
+            <div class="order-1 w-5/12"></div>
+            <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
+            <Card 
+                title="Backend"
+                description="Node.js, Express, Python, Django, Java, Spring Boot, PHP, Laravel"
+            />
+        </div>
+        
+        <!-- Timeline Item 3: Bases de Datos -->
+        <div class="mb-8 flex justify-between items-center w-full right-timeline">
+            <div class="order-1 w-5/12"></div>
+            <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
+            <Card 
+                title="Bases de Datos"
+                description="MongoDB, SQL, PostgreSQL, MySQL"
+            />
         </div>
 
-        <div class="relative bg-glass backdrop-blur-glass border-glass rounded-lg shadow-xl p-6 overflow-hidden card-container">
-            <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-            <div class="absolute top-1 right-1 text-5xl text-dark-text/10 dark:text-light-text/10 skill-icon">
-                <lord-icon
-                    src="https://cdn.lordicon.com/database.json"
-                    trigger="hover"
-                    colors="primary:var(--primary),secondary:var(--accent)"
-                    style="width:60px;height:60px">
-                </lord-icon>
-            </div>
-            <h3 class="relative text-xl font-bold text-dark-text dark:text-light-text mb-2">Bases de Datos</h3>
-            <p class="relative text-dark-text/90 dark:text-light-text/90">MongoDB, SQL, PostgreSQL, MySQL</p>
-        </div>
     </div>
 </section>

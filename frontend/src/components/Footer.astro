@@ -1,14 +1,41 @@
-<footer class="fixed bottom-0 left-0 w-full bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-md py-4 shadow-top z-50">
+<footer class="fixed bottom-0 left-0 w-full bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-md py-4 shadow-top z-40">
     <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left px-4">
         <p class="text-dark-text dark:text-light-text text-sm mb-4 md:mb-0">
             &copy; 2024 Ronny H. Segura. Todos los derechos reservados.
         </p>
-        <div class="flex space-x-4">
-            <a href="https://www.linkedin.com/in/rohusemer/" target="_blank" rel="noopener noreferrer" class="text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary transition-colors duration-300">
-                <i class="fab fa-linkedin fa-lg"></i>
+
+        <!-- Social Icons with Tooltips -->
+        <div class="flex items-center space-x-6">
+            <!-- WhatsApp -->
+            <a href="https://wa.me/593987139315" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="relative group text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary transition-colors duration-300">
+                <i class="fab fa-whatsapp fa-lg"></i>
+                <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2 py-1 text-xs text-light-text bg-dark-bg/80 dark:bg-light-bg/80 dark:text-dark-text rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible pointer-events-none">
+                    WhatsApp
+                </span>
             </a>
-            <a href="https://github.com/rohusemer" target="_blank" rel="noopener noreferrer" class="text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary transition-colors duration-300">
+
+            <!-- Email -->
+            <a href="mailto:ronhuseg@espol.edu.ec" aria-label="Email" class="relative group text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary transition-colors duration-300">
+                <i class="fas fa-envelope fa-lg"></i>
+                 <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2 py-1 text-xs text-light-text bg-dark-bg/80 dark:bg-light-bg/80 dark:text-dark-text rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible pointer-events-none">
+                    Email
+                </span>
+            </a>
+
+            <!-- LinkedIn -->
+            <a href="https://www.linkedin.com/in/rohusemer/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="relative group text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary transition-colors duration-300">
+                <i class="fab fa-linkedin fa-lg"></i>
+                 <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2 py-1 text-xs text-light-text bg-dark-bg/80 dark:bg-light-bg/80 dark:text-dark-text rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible pointer-events-none">
+                    LinkedIn
+                </span>
+            </a>
+
+            <!-- GitHub -->
+            <a href="https://github.com/rohusemer" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="relative group text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary transition-colors duration-300">
                 <i class="fab fa-github fa-lg"></i>
+                 <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2 py-1 text-xs text-light-text bg-dark-bg/80 dark:bg-light-bg/80 dark:text-dark-text rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible pointer-events-none">
+                    GitHub
+                </span>
             </a>
         </div>
     </div>

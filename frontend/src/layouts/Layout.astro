@@ -3,7 +3,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 
-const { title, description = 'Portafolio de Ronny H. Segura, un apasionado desarrollador Full Stack especializado en la creación de aplicaciones web modernas y eficientes.' } = Astro.props;
+const { title, description = "Portafolio de Ronny H. Segura, un apasionado desarrollador Full Stack especializado en la creación de aplicaciones web modernas y eficientes." } = Astro.props;
 const personalImageUrl = '/placeholder.jpg';
 ---
 <!DOCTYPE html>
@@ -57,71 +57,37 @@ const personalImageUrl = '/placeholder.jpg';
     <div id="tsparticles"></div>
     <div class="relative z-10">
         <Header />
-        <main>
+        <main class="pb-24">  <!-- Padding to prevent content from being hidden by the fixed footer -->
             <slot />
         </main>
+
+        <!-- Contact Mascot -->
         <div id="contact-mascot" class="fixed right-8 z-50 cursor-pointer">
             <i class="fas fa-robot text-4xl text-primary"></i>
         </div>
-        <div id="contact-options" class="fixed bottom-24 right-8 z-50 space-y-4 hidden">
-            <a href="https://wa.me/593987139315" target="_blank" class="block text-primary hover:text-accent"><i class="fab fa-whatsapp text-3xl"></i></a>
-            <a href="mailto:ronhuseg@espol.edu.ec" class="block text-primary hover:text-accent"><i class="fas fa-envelope text-3xl"></i></a>
-        </div>
+
         <Footer />
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             // --- Particles Animation --- //
-
             if (window.tsParticles) {
                 const isDarkMode = () => document.documentElement.classList.contains('dark');
-
-                const particleColors = {
-                    dark: { // For dark mode background
-                        particle: '#ffffff',
-                        link: '#ffffff'
-                    },
-                    light: { // For light mode background
-                        particle: '#374151', // gray-700
-                        link: '#374151'     // gray-700
-                    }
-                };
-
+                const particleColors = { dark: { particle: '#ffffff', link: '#ffffff' }, light: { particle: '#374151', link: '#374151' } };
                 const getThemeOptions = () => {
                     const currentColors = isDarkMode() ? particleColors.dark : particleColors.light;
                     return {
                         fpsLimit: 60,
                         interactivity: {
-                            events: {
-                                onHover: { enable: true, mode: "repulse" },
-                                onClick: { enable: true, mode: "push" },
-                                resize: true,
-                            },
-                            modes: {},
+                            events: { onHover: { enable: true, mode: "repulse" }, onClick: { enable: true, mode: "push" }, resize: true },
                         },
                         particles: {
                             color: { value: currentColors.particle },
-                            links: {
-                                color: currentColors.link,
-                                distance: 150,
-                                enable: true,
-                                opacity: 0.2,
-                                width: 1,
-                            },
+                            links: { color: { value: currentColors.link }, distance: 150, enable: true, opacity: 0.2, width: 1 },
                             collisions: { enable: true },
-                            move: {
-                                direction: "none",
-                                enable: true,
-                                outModes: { default: "bounce" },
-                                random: false,
-                                speed: 2,
-                                straight: false,
-                            },
-                            number: {
-                                density: { enable: true, area: 800 },
-                                value: 80,
-                            },
+                            move: { direction: "none", enable: true, outModes: { default: "bounce" }, random: false, speed: 2, straight: false },
+                            number: { density: { enable: true, area: 800 }, value: 80 },
                             opacity: { value: 0.2 },
                             shape: { type: "circle" },
                             size: { value: { min: 1, max: 5 } },
@@ -130,26 +96,19 @@ const personalImageUrl = '/placeholder.jpg';
                         background: { color: "transparent" }
                     };
                 };
-
                 let particlesInstance = await tsParticles.load("tsparticles", getThemeOptions());
-
-                const themeObserver = new MutationObserver((mutations) => {
-                    mutations.forEach(async (mutation) => {
+                const themeObserver = new MutationObserver(async (mutations) => {
+                    for (const mutation of mutations) {
                         if (mutation.attributeName === 'class') {
-                            if (particlesInstance) {
-                                particlesInstance.destroy(); // Destroy the old instance
-                            }
-                            particlesInstance = await tsParticles.load("tsparticles", getThemeOptions()); // Load new one with new options
+                            if (particlesInstance) particlesInstance.destroy();
+                            particlesInstance = await tsParticles.load("tsparticles", getThemeOptions());
                         }
-                    });
+                    }
                 });
-
                 themeObserver.observe(document.documentElement, { attributes: true });
             }
 
-            // --- Other Scripts --- //
-
-            // Intersection observer for sections
+            // --- Intersection observer for sections ---
             const sections = document.querySelectorAll('.section-hidden');
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -161,12 +120,50 @@ const personalImageUrl = '/placeholder.jpg';
             }, { threshold: 0.1 });
             sections.forEach(section => observer.observe(section));
 
-            // Contact mascot functionality
+            // --- Contact mascot animation ---
             const contactMascot = document.getElementById('contact-mascot');
-            const contactOptions = document.getElementById('contact-options');
-            contactMascot.addEventListener('click', () => {
-                contactOptions.classList.toggle('hidden');
-            });
+            if(contactMascot) {
+                contactMascot.addEventListener('click', () => {
+                    if (contactMascot.classList.contains('jiggle')) return;
+                    contactMascot.classList.add('jiggle');
+                    setTimeout(() => { contactMascot.classList.remove('jiggle'); }, 500);
+                });
+            }
+
+            // --- Header visibility logic ---
+            const header = document.getElementById('main-header');
+            if (header) {
+                const headerTriggerZone = 50; // px from top
+                let isHeaderVisible = true;
+
+                // Handle visibility on mouse move
+                document.addEventListener('mousemove', (e) => {
+                    if (e.clientY < headerTriggerZone) {
+                        if (!isHeaderVisible) {
+                            header.style.transform = 'translateY(0)';
+                            isHeaderVisible = true;
+                        }
+                    } else {
+                        // Only hide if we are not at the top of the page
+                        if (isHeaderVisible && window.scrollY > 0) {
+                            header.style.transform = 'translateY(-100%)';
+                            isHeaderVisible = false;
+                        }
+                    }
+                });
+
+                // Handle visibility on scroll
+                window.addEventListener('scroll', () => {
+                    const scrollTop = window.scrollY;
+                    if (scrollTop > 0 && isHeaderVisible) {
+                        header.style.transform = 'translateY(-100%)';
+                        isHeaderVisible = false;
+                    } else if (scrollTop === 0 && !isHeaderVisible) {
+                        header.style.transform = 'translateY(0)';
+                        isHeaderVisible = true;
+                    }
+                });
+            }
         });
     </script>
 </body>

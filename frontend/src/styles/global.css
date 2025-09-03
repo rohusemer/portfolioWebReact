@@ -16,10 +16,6 @@
 .dark {
     --primary: #3b82f6;       /* Lighter Blue for contrast */
     --accent: #10b981;        /* Brighter Emerald */
-    --light-text: #e6edf3;   /* Light Gray */
-    --dark-text: #111827;    /* Almost Black */
-    --light-bg: #f9fafb;     /* Off-White */
-    --dark-bg: #0d1117;      /* Charcoal Black */
 
     /* Glass effect for Dark Mode */
     --glass-bg: rgba(255, 255, 255, 0.03);
@@ -33,6 +29,11 @@
 html {
     scroll-behavior: smooth;
 }
+
+body {
+    padding-bottom: 80px; /* Adjust this value to match the footer's approximate height */
+}
+
 
 /* Apply focus styles to inputs */
 .form-input:focus, 
@@ -67,45 +68,18 @@ textarea:focus {
     transform: translateY(0);
 }
 
-/* Mascot animations */
-.card-container .ghost-mascot,
-.button-container .robot-mascot {
-    visibility: hidden;
-    opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-    position: absolute;
-    top: -25px;
-    left: 50%;
-    margin-left: -15px;
-    font-size: 28px;
-    color: var(--primary);
-    z-index: 50;
-}
-
-.card-container:hover .ghost-mascot,
-.button-container:hover .robot-mascot {
-    visibility: visible;
-    opacity: 1;
-    transform: translateY(0);
-    animation: float 1.5s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-8px);
-    }
-}
-
-/* Animated icon style */
-.animated-icon {
-    width: 48px; 
-    height: 48px;
-}
-
+/* Contact Mascot Styling */
 #contact-mascot {
-    bottom: 3rem;
+    bottom: 6rem; /* Position above the footer */
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Jiggle Animation */
+@keyframes jiggle {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+}
+
+.jiggle {
+    animation: jiggle 0.5s ease-in-out;
 }

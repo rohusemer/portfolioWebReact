@@ -1,0 +1,37 @@
+---
+const { title, description, href } = Astro.props;
+---
+<div class="order-1 bg-light-bg/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl w-5/12 px-6 py-4 card-container relative">
+    <div class="card-mascot">
+        <i class="fas fa-robot"></i>
+    </div>
+    <h3 class="mb-3 font-bold text-dark-text dark:text-light-text text-xl text-center">{title}</h3>
+    <p class="text-sm text-center leading-snug tracking-wide text-dark-text/90 dark:text-light-text/90" set:html={description}></p>
+    {href && (
+        <div class="text-center mt-4">
+            <a href={href} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Ver Proyecto</a>
+        </div>
+    )}
+</div>
+
+<style>
+.card-mascot {
+    position: absolute;
+    top: -28px; /* Adjust to position it nicely above the card */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    color: var(--primary);
+    z-index: 20;
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translate(-50%, -5px);
+    }
+    50% {
+        transform: translate(-50%, 5px);
+    }
+}
+</style>

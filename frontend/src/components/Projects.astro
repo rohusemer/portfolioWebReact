@@ -1,4 +1,5 @@
 ---
+import Card from './Card.astro';
 ---
 <section id="projects" class="py-20 section-hidden">
     <h2 class="text-center text-4xl font-bold mb-12 text-primary">Proyectos</h2>
@@ -9,31 +10,21 @@
         <div class="mb-8 flex justify-between items-center w-full right-timeline">
             <div class="order-1 w-5/12"></div>
             <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
-            <div class="order-1 bg-light-bg/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl w-5/12 px-6 py-4 card-container">
-                <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-                <div class="flex justify-center mb-4">
-                    <lord-icon src="https://cdn.lordicon.com/gqjpawbc.json" trigger="hover" colors="primary:var(--primary),secondary:var(--accent)" class="animated-icon"></lord-icon>
-                </div>
-                <h3 class="mb-3 font-bold text-dark-text dark:text-light-text text-xl text-center">EXPLORA K5</h3>
-                <p class="text-sm text-center leading-snug tracking-wide text-dark-text/90 dark:text-light-text/90">Educación virtual para niños de 4 a 7 años.</p>
-                <div class="text-center mt-4 relative button-container">
-                    <a href="http://www.explora.espol.edu.ec/" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Ver Proyecto</a>
-                </div>
-            </div>
+            <Card 
+                title="EXPLORA K5"
+                description="Educación virtual para niños de 4 a 7 años."
+                href="http://www.explora.espol.edu.ec/"
+            />
         </div>
 
         <!-- Timeline Item 2 -->
         <div class="mb-8 flex justify-between flex-row-reverse items-center w-full left-timeline">
             <div class="order-1 w-5/12"></div>
             <div class="z-20 flex items-center order-1 bg-primary shadow-xl w-8 h-8 rounded-full"></div>
-            <div class="order-1 bg-light-bg/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl w-5/12 px-6 py-4 card-container">
-                <div class="robot-mascot"><i class="fas fa-robot"></i></div>
-                <div class="flex justify-center mb-4">
-                    <lord-icon src="https://cdn.lordicon.com/boyoxpok.json" trigger="hover" colors="primary:var(--primary),secondary:var(--accent)" class="animated-icon"></lord-icon>
-                </div>
-                <h3 class="mb-3 font-bold text-dark-text dark:text-light-text text-xl text-center">Portafolio Personal</h3>
-                <p class="text-sm text-center leading-snug tracking-wide text-dark-text/90 dark:text-light-text/90">Este mismo portafolio, creado con Astro y Tailwind CSS.</p>
-            </div>
+            <Card 
+                title="Portafolio Personal"
+                description="Este mismo portafolio, creado con Astro y Tailwind CSS."
+            />
         </div>
     </div>
 </section>
