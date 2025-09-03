@@ -91,3 +91,6 @@ build/Release # Para addons binarios de Node.js
 # Registros de Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Local Netlify folder
+.netlify

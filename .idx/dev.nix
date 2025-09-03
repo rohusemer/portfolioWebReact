@@ -1,55 +1,40 @@
-# To learn more about how to use Nix to configure your environment
-# see: https://firebase.google.com/docs/studio/customize-workspace
 { pkgs, ... }: {
-  # Which nixpkgs channel to use.
-  channel = "stable-24.05"; # or "unstable"
-
-  # Use https://search.nixos.org/packages to find packages
-  packages = [
-    # pkgs.go
-    # pkgs.python311
-    # pkgs.python311Packages.pip
-    # pkgs.nodejs_20
-    # pkgs.nodePackages.nodemon
+  # Entorno de desarrollo basado en Node.js versión 20
+  environment.systemPackages = [
+    pkgs.nodejs_20
   ];
 
-  # Sets environment variables in the workspace
-  env = {};
-  idx = {
-    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
-    extensions = [
-      # "vscodevim.vim"
-    ];
+  # Procesos que se ejecutan al iniciar el entorno
+  services.processes = [
+    {
+      # Instala las dependencias de npm la primera vez que se inicia el entorno
+      name = "npm-install";
+      command = "npm install";
+      runOnce = true; # Asegura que solo se ejecute una vez
+    }
+  ];
 
-    # Enable previews
-    previews = {
-      enable = true;
-      previews = {
-        # web = {
-        #   # Example: run "npm run dev" with PORT set to IDX's defined port for previews,
-        #   # and show it in IDX's web preview panel
-        #   command = ["npm" "run" "dev"];
-        #   manager = "web";
-        #   env = {
-        #     # Environment variables to set for your server
-        #     PORT = "$PORT";
-        #   };
-        # };
-      };
-    };
-
-    # Workspace lifecycle hooks
-    workspace = {
-      # Runs when a workspace is first created
-      onCreate = {
-        # Example: install JS dependencies from NPM
-        # npm-install = "npm install";
-      };
-      # Runs when the workspace is (re)started
-      onStart = {
-        # Example: start a background task to watch and re-build backend code
-        # watch-backend = "npm run watch-backend";
-      };
-    };
+  # Define el comando principal para iniciar el servidor de desarrollo
+  processes.start-dev-server = {
+    command = "npm run dev";
+    # Hace que este proceso esté disponible como un comando en el IDE
+    available = true; 
   };
+
+  # Configuración de la vista previa de la aplicación
+  previews = [
+    {
+      # Puerto que utiliza lite-server por defecto
+      port = 3000;
+      # Inicia el servidor de desarrollo automáticamente cuando se abre la vista previa
+      start = "start-dev-server";
+    }
+  ];
+
+  # Extensiones de VS Code recomendadas para este proyecto
+  extensions = [
+    "dbaeumer.vscode-eslint", # Para linting de JavaScript
+    "esbenp.prettier-vscode", # Para formateo de código
+    "ms-vscode.html-css"      # Soporte para HTML y CSS
+  ];
 }

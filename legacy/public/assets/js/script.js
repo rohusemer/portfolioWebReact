@@ -172,7 +172,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadFooter() {
+        try {
+            const response = await fetch('/components/footer.html');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const footerHTML = await response.text();
+            const footerContainer = document.getElementById('footer-container');
+            if (footerContainer) {
+                footerContainer.innerHTML = footerHTML;
+            }
+        } catch (error) {
+            console.error('Error loading footer component:', error);
+        }
+    }
+
     loadNavbar(); // Cargar la barra de navegación al cargar el DOM
+    loadFooter(); // Cargar el footer al cargar el DOM
     // --- Fin Script para cargar componente de navegación ---
 
 

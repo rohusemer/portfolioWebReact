@@ -70,8 +70,13 @@ module.exports = function(grunt) {
   
        clean: {
           dist: ['dist'] // Limpia el directorio dist
-       }
-  
+       },
+       
+       shell: {
+        liteServer: {
+          command: 'lite-server --baseDir=dist'
+        }
+      }
   
     });
   
@@ -81,24 +86,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
-  
+    grunt.loadNpmTasks('grunt-shell');
   
     // Default task(s).
-    // Ejecuta clean, luego minifica/concatena CSS y JS, luego copia los archivos y finalmente inicia lite-server con watch
-    grunt.registerTask('default', ['clean', 'cssmin', 'uglify', 'copy', 'lite']);
-  
-    // Tarea personalizada para iniciar lite-server (necesita el plugin grunt-lite-server si quieres controlarlo directamente desde Grunt)
-    // O simplemente usas npm start si ya configuraste lite-server en package.json
-     grunt.registerTask('lite', ['shell:liteServer']); // Necesitarías grunt-shell para esto
-  
-      // Si decides usar grunt-shell, instala: npm install --save-dev grunt-shell
-      // Y añade esta configuración a grunt.initConfig:
-      // shell: {
-      //   liteServer: {
-      //     command: 'lite-server --baseDir=dist' // Sirve la carpeta dist después de construir
-      //   }
-      // }
-  
-  
+    grunt.registerTask('default', ['clean', 'cssmin', 'uglify', 'copy', 'shell:liteServer']);
   };
   
