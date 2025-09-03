@@ -1,0 +1,63 @@
+---
+---
+
+<section id="drawings" class="py-5">
+    <h2 class="text-center text-3xl font-bold mb-4">Galería de Dibujos</h2>
+    <div id="drawings-gallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</section>
+
+<script>
+    function loadDrawings() {
+        const drawingsGallery = document.getElementById('drawings-gallery');
+        if (!drawingsGallery) return;
+
+        const savedDrawings = JSON.parse(localStorage.getItem('drawings')) || [];
+        drawingsGallery.innerHTML = '';
+
+        if (savedDrawings.length === 0) {
+            drawingsGallery.innerHTML = '<p class="text-center col-span-full">Aún no tienes dibujos guardados. ¡Ve a la Pizarra Interactiva y crea uno!</p>';
+            return;
+        }
+
+        savedDrawings.forEach((item, index) => {
+            const cardContainer = document.createElement('div');
+            cardContainer.classList.add('w-full', 'bg-white', 'dark:bg-gray-800', 'shadow-lg', 'rounded-lg', 'p-4');
+
+            const img = document.createElement('img');
+            img.src = item.dataURL;
+            img.alt = `Dibujo guardado ${index + 1}`;
+            img.classList.add('w-full', 'h-auto', 'rounded-lg');
+
+            const imageContainer = document.createElement('div');
+            imageContainer.style.position = 'relative';
+            imageContainer.appendChild(img);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'x';
+            deleteButton.addEventListener('click', () => {
+                const currentDrawings = JSON.parse(localStorage.getItem('drawings')) || [];
+                currentDrawings.splice(index, 1);
+                localStorage.setItem('drawings', JSON.stringify(currentDrawings));
+                loadDrawings();
+            });
+
+            deleteButton.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'absolute', 'top-2', 'right-2');
+            imageContainer.appendChild(deleteButton);
+
+            cardContainer.appendChild(imageContainer);
+
+            if (item.observation && item.observation.trim() !== '') {
+                const observationBox = document.createElement('p');
+                observationBox.textContent = item.observation.trim();
+                observationBox.classList.add('mt-2', 'text-gray-600', 'dark:text-gray-300');
+                cardContainer.appendChild(observationBox);
+            }
+
+            drawingsGallery.appendChild(cardContainer);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDrawings);
+    // Also listen for storage changes to update the gallery in real-time
+    window.addEventListener('storage', loadDrawings);
+</script>

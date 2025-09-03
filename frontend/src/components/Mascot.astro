@@ -1,0 +1,29 @@
+---
+---
+<div id="mascot-container" class="fixed bottom-5 right-5 z-50 transition-opacity duration-500 opacity-0 invisible group">
+    <a href="#contact">
+        <lord-icon
+            src="https://cdn.lordicon.com/lhwyshcs.json"
+            trigger="loop"
+            delay="2000"
+            colors="primary:#121331,secondary:#242424,tertiary:#92140c,quaternary:#f9c9c0,quinary:#3a3347"
+            style="width:100px;height:100px">
+        </lord-icon>
+    </a>
+    <div id="mascot-tooltip" class="absolute bottom-full mb-2 right-0 bg-light-bg dark:bg-dark-bg border border-primary text-dark-text dark:text-light-text text-sm rounded-lg px-3 py-2 w-max shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        ¡Hola! ¿Buscas ayuda? ¡Hablemos!
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const mascot = document.getElementById('mascot-container');
+        if (mascot) {
+            // Show after a delay
+            setTimeout(() => {
+                mascot.classList.remove('invisible');
+                mascot.classList.add('opacity-100');
+            }, 3000);
+        }
+    });
+</script>

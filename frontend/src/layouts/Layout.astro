@@ -1,0 +1,173 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+const { title, description = 'Portafolio de Ronny H. Segura, un apasionado desarrollador Full Stack especializado en la creación de aplicaciones web modernas y eficientes.' } = Astro.props;
+const personalImageUrl = '/placeholder.jpg';
+---
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content={description} />
+    <meta name="keywords" content="Ronny Segura, Desarrollador Full Stack, Portafolio, Astro, Tailwind CSS, JavaScript, React, Node.js" />
+    <meta name="author" content="Ronny H. Segura" />
+
+    <!-- Open Graph (Facebook, LinkedIn, etc.) -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={personalImageUrl} />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={personalImageUrl} />
+
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- Generator -->
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- External Scripts and Fonts -->
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        #tsparticles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0; /* Base layer for animation */
+        }
+    </style>
+</head>
+<body class="bg-light-bg text-dark-text dark:bg-dark-bg dark:text-light-text transition-colors duration-200">
+    <div id="tsparticles"></div>
+    <div class="relative z-10">
+        <Header />
+        <main>
+            <slot />
+        </main>
+        <div id="contact-mascot" class="fixed right-8 z-50 cursor-pointer">
+            <i class="fas fa-robot text-4xl text-primary"></i>
+        </div>
+        <div id="contact-options" class="fixed bottom-24 right-8 z-50 space-y-4 hidden">
+            <a href="https://wa.me/593987139315" target="_blank" class="block text-primary hover:text-accent"><i class="fab fa-whatsapp text-3xl"></i></a>
+            <a href="mailto:ronhuseg@espol.edu.ec" class="block text-primary hover:text-accent"><i class="fas fa-envelope text-3xl"></i></a>
+        </div>
+        <Footer />
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // --- Particles Animation --- //
+
+            if (window.tsParticles) {
+                const isDarkMode = () => document.documentElement.classList.contains('dark');
+
+                const particleColors = {
+                    dark: { // For dark mode background
+                        particle: '#ffffff',
+                        link: '#ffffff'
+                    },
+                    light: { // For light mode background
+                        particle: '#374151', // gray-700
+                        link: '#374151'     // gray-700
+                    }
+                };
+
+                const getThemeOptions = () => {
+                    const currentColors = isDarkMode() ? particleColors.dark : particleColors.light;
+                    return {
+                        fpsLimit: 60,
+                        interactivity: {
+                            events: {
+                                onHover: { enable: true, mode: "repulse" },
+                                onClick: { enable: true, mode: "push" },
+                                resize: true,
+                            },
+                            modes: {},
+                        },
+                        particles: {
+                            color: { value: currentColors.particle },
+                            links: {
+                                color: currentColors.link,
+                                distance: 150,
+                                enable: true,
+                                opacity: 0.2,
+                                width: 1,
+                            },
+                            collisions: { enable: true },
+                            move: {
+                                direction: "none",
+                                enable: true,
+                                outModes: { default: "bounce" },
+                                random: false,
+                                speed: 2,
+                                straight: false,
+                            },
+                            number: {
+                                density: { enable: true, area: 800 },
+                                value: 80,
+                            },
+                            opacity: { value: 0.2 },
+                            shape: { type: "circle" },
+                            size: { value: { min: 1, max: 5 } },
+                        },
+                        detectRetina: true,
+                        background: { color: "transparent" }
+                    };
+                };
+
+                let particlesInstance = await tsParticles.load("tsparticles", getThemeOptions());
+
+                const themeObserver = new MutationObserver((mutations) => {
+                    mutations.forEach(async (mutation) => {
+                        if (mutation.attributeName === 'class') {
+                            if (particlesInstance) {
+                                particlesInstance.destroy(); // Destroy the old instance
+                            }
+                            particlesInstance = await tsParticles.load("tsparticles", getThemeOptions()); // Load new one with new options
+                        }
+                    });
+                });
+
+                themeObserver.observe(document.documentElement, { attributes: true });
+            }
+
+            // --- Other Scripts --- //
+
+            // Intersection observer for sections
+            const sections = document.querySelectorAll('.section-hidden');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.remove('section-hidden');
+                        entry.target.classList.add('section-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            sections.forEach(section => observer.observe(section));
+
+            // Contact mascot functionality
+            const contactMascot = document.getElementById('contact-mascot');
+            const contactOptions = document.getElementById('contact-options');
+            contactMascot.addEventListener('click', () => {
+                contactOptions.classList.toggle('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

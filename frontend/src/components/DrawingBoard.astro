@@ -1,0 +1,43 @@
+---
+---
+
+<section id="drawing-board-section" class="py-20">
+    <div class="container mx-auto px-4">
+        <h2 class="text-center text-4xl font-bold mb-12 text-primary">Pizarra Interactiva</h2>
+        <div class="bg-white/50 dark:bg-glass backdrop-blur-glass border dark:border-glass rounded-lg shadow-xl p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <h5 class="text-center text-xl font-bold mb-4 text-dark-bg dark:text-light-text">Dibuja aquí</h5>
+                    <canvas id="drawingCanvas" class="w-full h-96 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/70 dark:bg-dark-bg/50"></canvas>
+                </div>
+                <div class="space-y-4">
+                    <h5 class="text-center text-xl font-bold text-dark-bg dark:text-light-text">Herramientas</h5>
+                    <div>
+                        <label for="colorPicker" class="block text-dark-bg dark:text-light-text font-semibold mb-2">Color del Pincel</label>
+                        <input type="color" id="colorPicker" value="#000000" class="w-full h-10 p-1 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer">
+                    </div>
+                    <div>
+                        <label for="brushSize" class="block text-dark-bg dark:text-light-text font-semibold mb-2">Tamaño: <span id="brushSizeValue" class="font-bold">5</span>px</label>
+                        <input type="range" id="brushSize" min="1" max="20" value="5" class="w-full accent-primary">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="pencilButton" class="bg-accent/80 text-light-bg font-bold py-2 px-4 rounded-lg transition-colors duration-300"><i class="fas fa-pencil-alt"></i> Lápiz</button>
+                        <button id="eraserButton" class="bg-gray-400/80 dark:bg-gray-600/80 text-light-bg font-bold py-2 px-4 rounded-lg transition-colors duration-300"><i class="fas fa-eraser"></i> Borrador</button>
+                    </div>
+                    <div>
+                        <label for="drawingObservation" class="block text-dark-bg dark:text-light-text font-semibold mb-2">Observaciones</label>
+                        <textarea id="drawingObservation" class="w-full p-2 bg-light-bg/50 dark:bg-dark-bg/50 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="Añade una nota a tu dibujo..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button id="undoButton" class="bg-gray-400/80 dark:bg-gray-600/80 text-light-bg font-bold py-2 px-4 rounded-lg transition-colors duration-300"><i class="fas fa-undo"></i> Deshacer</button>
+                        <button id="clearButton" class="bg-red-500/90 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors duration-300"><i class="fas fa-trash-alt"></i> Borrar</button>
+                        <button id="saveButton" class="bg-primary text-dark-bg font-bold py-2 px-4 rounded-lg hover:bg-accent hover:text-light-bg transition-colors duration-300"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="drawings-gallery" class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </div>
+</section>
+
+<script src="/src/scripts/drawing-board.js"></script>

@@ -1,0 +1,139 @@
+<header id="main-header" class="bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-md shadow-md fixed w-full z-10 transition-transform duration-300">
+    <nav class="container mx-auto flex items-center justify-between p-4">
+        <a href="/" class="flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <div class="flex flex-col">
+                <span class="text-xl font-bold text-primary">Sure Developments</span>
+                <span class="text-xs text-dark-text/70 dark:text-light-text/70">by Ronny Segura</span>
+            </div>
+        </a>
+        <div class="hidden md:flex space-x-4 items-center nav-links">
+            <a href="#skills" class="text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary">Habilidades</a>
+            <a href="#experience" class="text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary">Experiencia</a>
+            <a href="#education" class="text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary">Educación</a>
+            <a href="#projects" class="text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary">Proyectos</a>
+            <a href="/drawing-board" class="text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary">Pizarra</a>
+            <button class="darkModeToggle ml-4 text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+        <div class="md:hidden">
+            <button id="menu-toggle" class="text-dark-text dark:text-light-text">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+    <div id="mobile-menu" class="hidden md:hidden bg-light-bg/95 dark:bg-dark-bg/95 nav-links">
+        <a href="#skills" class="block p-4 text-dark-text dark:text-light-text hover:bg-accent/10">Habilidades</a>
+        <a href="#experience" class="block p-4 text-dark-text dark:text-light-text hover:bg-accent/10">Experiencia</a>
+        <a href="#education" class="block p-4 text-dark-text dark:text-light-text hover:bg-accent/10">Educación</a>
+        <a href="#projects" class="block p-4 text-dark-text dark:text-light-text hover:bg-accent/10">Proyectos</a>
+        <a href="/drawing-board" class="block p-4 text-dark-text dark:text-light-text hover:bg-accent/10">Pizarra</a>
+		<div class="p-4">
+			<button class="darkModeToggle w-full text-left text-dark-text dark:text-light-text hover:bg-accent/10">
+				<i class="fas fa-moon"></i> Cambiar Tema
+			</button>
+		</div>
+    </div>
+</header>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Intelligent Navigation ---
+        const isHomePage = window.location.pathname === '/';
+        const navLinks = document.querySelectorAll('.nav-links a');
+
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('#')) {
+                if (!isHomePage) {
+                    link.setAttribute('href', `/${href}`);
+                }
+            }
+        });
+
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (menuToggle && mobileMenu) {
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Dark mode toggle
+        const darkModeToggles = document.querySelectorAll('.darkModeToggle');
+        const html = document.documentElement;
+
+        const updateDarkModeIcon = () => {
+            const isDark = html.classList.contains('dark');
+            darkModeToggles.forEach(toggle => {
+                const icon = toggle.querySelector('i');
+                if (isDark) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+        }
+
+        darkModeToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                html.classList.toggle('dark');
+                localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+                updateDarkModeIcon();
+            });
+        });
+
+        // Check for saved theme and set initial icon
+        if (localStorage.getItem('theme') === 'dark' ||
+           (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+        updateDarkModeIcon();
+
+        // Hide header on scroll
+        let lastScrollTop = 0;
+        const header = document.getElementById('main-header');
+        window.addEventListener('scroll', function() {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > lastScrollTop) {
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                header.style.transform = 'translateY(0)';
+            }
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        });
+
+        // Active link highlighting for the homepage
+        if (isHomePage) {
+            const sections = document.querySelectorAll('section[id]');
+            const sectionNavLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        sectionNavLinks.forEach(link => {
+                            link.classList.remove('text-primary', 'dark:text-primary');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('text-primary', 'dark:text-primary');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: '-50% 0px -50% 0px' });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        }
+    });
+</script>
