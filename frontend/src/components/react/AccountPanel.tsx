@@ -15,13 +15,14 @@ import Markdown from './Markdown';
 
 interface Props {
   user: User;
+  username: string | null;
   role: Role;
   data: PortfolioData;
   onTogglePublic: (isPublic: boolean) => Promise<void>;
 }
 
 /** Pestaña "Mi cuenta" de /mi-cv: rol actual, página pública y solicitud de permisos. */
-export default function AccountPanel({ user, role, data, onTogglePublic }: Props) {
+export default function AccountPanel({ user, username, role, data, onTogglePublic }: Props) {
   const [plans, setPlans] = useState<PlanSettings | null>(null);
   const [request, setRequest] = useState<RoleRequest | null | undefined>(undefined);
 
@@ -32,7 +33,7 @@ export default function AccountPanel({ user, role, data, onTogglePublic }: Props
       .catch(() => setRequest(null));
   }, [user.uid]);
 
-  const publicUrl = `${location.origin}/perfil?u=${user.uid}`;
+  const publicUrl = `${location.origin}/perfil?u=${username ?? user.uid}`;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -40,6 +41,7 @@ export default function AccountPanel({ user, role, data, onTogglePublic }: Props
         {user.photoURL && <img src={user.photoURL} alt="" referrerPolicy="no-referrer" className="w-14 h-14 rounded-full" />}
         <div className="flex-1">
           <div className="font-bold">{user.displayName}</div>
+          {username && <div className="text-sm text-primary">@{username}</div>}
           <div className="text-sm opacity-70">{user.email}</div>
         </div>
         <span className="px-3 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary">{ROLE_LABELS[role]}</span>
@@ -106,10 +108,11 @@ function RequestCard({
   request: RoleRequest | null | undefined;
   onSent: (r: RoleRequest) => void;
 }) {
-  const [requestedRole, setRequestedRole] = useState<'premium' | 'editor'>('premium');
+  const requestedRole = 'premium' as const;
   const [message, setMessage] = useState('');
   const [paymentRef, setPaymentRef] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'error'>('idle');
+  const [errMsg, setErrMsg] = useState('');
 
   const safePayLink = /^https:\/\//i.test(plans.paymentLink) ? plans.paymentLink : '';
   // Muchos proveedores aceptan una referencia en la URL; así el pago queda asociado a la cuenta
@@ -126,9 +129,13 @@ function RequestCard({
     const r = { uid: user.uid, email: user.email ?? '', name: user.displayName ?? '', requestedRole, message, paymentRef };
     try {
       await submitRoleRequest(r);
-      onSent({ ...r, status: 'pending', createdAt: new Date().toISOString() });
+      // Se vuelve a leer del servidor para confirmar que quedó registrada
+      const saved = await fetchMyRequest(user.uid);
+      if (!saved) throw new Error('La solicitud no quedó registrada.');
+      onSent(saved);
       setState('idle');
-    } catch {
+    } catch (e) {
+      setErrMsg((e as Error).message);
       setState('error');
     }
   };
@@ -155,7 +162,7 @@ function RequestCard({
     <section className="rounded-xl p-4 border border-neutral-200 dark:border-neutral-800 bg-white/60 dark:bg-neutral-900/60">
       <h3 className="font-bold mb-1">
         <i className="fas fa-gem text-violet-500 mr-2" />
-        Solicitar un permiso especial
+        Hazte Premium
       </h3>
       {request?.status === 'rejected' && (
         <p className="text-xs mb-2 text-red-500">Tu solicitud anterior fue rechazada. Puedes enviar una nueva.</p>
@@ -171,19 +178,10 @@ function RequestCard({
         </div>
       )}
 
-      <label className="block mb-3">
-        <span className="block text-xs font-semibold uppercase tracking-wide mb-1 opacity-70">Permiso que solicitas</span>
-        <select
-          value={requestedRole}
-          onChange={(e) => setRequestedRole(e.target.value as 'premium' | 'editor')}
-          className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
-        >
-          {plans.premiumEnabled && <option value="premium">Premium: página pública de mi CV</option>}
-          <option value="editor">Editor: colaborar en el portafolio</option>
-        </select>
-      </label>
 
-      {requestedRole === 'premium' && payUrl && (
+
+      {!plans.premiumEnabled && <p className="text-sm opacity-70 mb-3">El plan Premium no está disponible por ahora.</p>}
+      {payUrl && (
         <div className="mb-3 p-3 rounded-lg bg-emerald-500/5 border border-emerald-300 dark:border-emerald-900">
           <p className="text-sm mb-2">
             <strong>Paso 1:</strong> realiza el pago ({plans.premiumPrice}).
@@ -216,18 +214,27 @@ function RequestCard({
         />
       </label>
 
-      {state === 'error' && <p className="text-xs text-red-500 mb-2">No se pudo enviar la solicitud. Inténtalo de nuevo.</p>}
+      {state === 'error' && (
+        <p className="text-xs text-red-500 mb-2">
+          No se pudo enviar la solicitud{errMsg ? `: ${errMsg}` : ''}. {!user.emailVerified && 'Primero verifica tu correo.'}
+        </p>
+      )}
+      {!user.emailVerified && <p className="text-xs text-amber-600 mb-2">Necesitas verificar tu correo para enviar la solicitud.</p>}
       <div className="flex flex-wrap gap-2">
         <button
           onClick={send}
-          disabled={state === 'sending'}
+          disabled={state === 'sending' || !plans.premiumEnabled || !user.emailVerified}
+          title={user.emailVerified ? undefined : 'Primero verifica tu correo'}
           className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-accent disabled:opacity-50"
         >
           <i className="fas fa-paper-plane mr-1" /> {state === 'sending' ? 'Enviando…' : 'Enviar solicitud'}
         </button>
         <a href={mailto} className="px-4 py-2 rounded-lg border border-primary text-primary text-sm font-semibold">
-          <i className="fas fa-envelope mr-1" /> Solicitar por correo
+          <i className="fas fa-envelope mr-1" /> Avisar también por correo
         </a>
+        <p className="w-full text-[11px] opacity-60">
+          “Enviar solicitud” la registra en el panel del administrador. El correo es solo un aviso adicional.
+        </p>
       </div>
     </section>
   );

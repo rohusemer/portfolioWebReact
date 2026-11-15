@@ -245,13 +245,13 @@ function About({ data }: { data: PortfolioData }) {
             </p>
           ) : (
             <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <a
-                href="/cv"
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('open-cv'))}
                 className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-accent transition-colors duration-300"
               >
                 <i className="fas fa-file-pdf mr-2" />
                 Ver / Descargar CV
-              </a>
+              </button>
               {data.contact.email && (
                 <a
                   href={`mailto:${data.contact.email}`}

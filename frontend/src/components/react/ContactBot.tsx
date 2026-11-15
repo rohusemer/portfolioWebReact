@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { PortfolioData } from '../../lib/types';
 import { downloadPublishedCv, fetchCvPdfMeta, firebaseConfigured, loadPortfolioOnce, sendContactMessage } from '../../lib/firebase';
 import type { CvPdfMeta } from '../../lib/types';
+import { fetchGithubInfo, githubUsername, type GithubInfo } from '../../lib/github';
 import { QUICK_REPLIES, openingMessages, reply, type BotAction } from '../../lib/botBrain';
 import { renderMarkdown } from '../../lib/markdown';
 
@@ -19,6 +20,14 @@ export default function ContactBot({ initialData }: { initialData: PortfolioData
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
+  const [gh, setGh] = useState<GithubInfo | null>(null);
+
+  // Al abrir el bot, carga en segundo plano la información pública de GitHub
+  useEffect(() => {
+    if (!open || gh) return;
+    const user = githubUsername(data.contact.github);
+    if (user) fetchGithubInfo(user).then(setGh);
+  }, [open, data.contact.github]);
 
   useEffect(() => {
     loadPortfolioOnce().then((d) => d && setData(d));
@@ -58,7 +67,7 @@ export default function ContactBot({ initialData }: { initialData: PortfolioData
     setInput('');
     setTyping(true);
     setTimeout(() => {
-      const r = reply(text, data);
+      const r = reply(text, data, gh);
       setMsgs((m) => [...m, { from: 'bot', text: r.text, action: r.action }]);
       setTyping(false);
     }, 450);
@@ -234,9 +243,12 @@ function CvDownload({ onDone }: { onDone: () => void }) {
 
   if (!meta) {
     return (
-      <a href="/cv" className="mt-2 inline-block rounded-lg bg-primary text-white px-3 py-1.5 font-semibold">
-        <i className="fas fa-file-pdf mr-1" /> Abrir CV
-      </a>
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent('open-cv'))}
+        className="mt-2 inline-block rounded-lg bg-primary text-white px-3 py-1.5 font-semibold"
+      >
+        <i className="fas fa-file-pdf mr-1" /> Ver CV
+      </button>
     );
   }
 
@@ -244,7 +256,8 @@ function CvDownload({ onDone }: { onDone: () => void }) {
     setState('loading');
     const ok = await downloadPublishedCv().catch(() => false);
     if (!ok) {
-      window.location.href = '/cv';
+      window.dispatchEvent(new CustomEvent('open-cv'));
+      setState('idle');
       return;
     }
     setState('done');
@@ -271,9 +284,12 @@ function CvDownload({ onDone }: { onDone: () => void }) {
           <i className={`fas ${state === 'loading' ? 'fa-spinner fa-spin' : state === 'done' ? 'fa-check' : 'fa-download'} mr-1`} />
           {state === 'done' ? 'Descargado' : 'Descargar'}
         </button>
-        <a href="/cv" className="rounded-lg border border-primary text-primary px-2 py-1.5 text-xs font-semibold">
-          Ver en línea
-        </a>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('open-cv'))}
+          className="rounded-lg border border-primary text-primary px-2 py-1.5 text-xs font-semibold"
+        >
+          Ver
+        </button>
       </div>
     </div>
   );

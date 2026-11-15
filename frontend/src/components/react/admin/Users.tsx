@@ -1,6 +1,9 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   ASSIGNABLE_ROLES,
+  DEFAULT_LEVEL,
+  deleteUserData,
+  sendPasswordReset,
   downloadPublishedCv,
   fetchCvPdfMeta,
   fetchPortfolio,
@@ -26,7 +29,6 @@ import { ScaledCv } from '../CvViewer';
 
 const ROLE_STYLE: Record<Role, string> = {
   owner: 'bg-amber-500/20 text-amber-700 dark:text-amber-400',
-  editor: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
   premium: 'bg-violet-500/20 text-violet-700 dark:text-violet-400',
   user: 'bg-neutral-500/20',
   blocked: 'bg-red-500/20 text-red-600',
@@ -34,7 +36,6 @@ const ROLE_STYLE: Record<Role, string> = {
 
 const ROLE_HELP: Record<Role, string> = {
   owner: 'Tú: control total (fijo, no se asigna)',
-  editor: 'Edita el portafolio, publica el PDF y lee mensajes',
   premium: 'Su CV + página pública compartible',
   user: 'Solo su propio CV en /mi-cv',
   blocked: 'Sin acceso',
@@ -62,17 +63,41 @@ export default function Users({ currentUid }: { currentUid: string }) {
 
   const changeRole = async (u: AppUser, role: Role) => {
     if (role === u.role) return;
-    if (role === 'editor' && !confirm(`¿Permitir que ${u.email} edite tu portafolio y lea tus mensajes?`)) return;
     if (role === 'blocked' && !confirm(`¿Bloquear a ${u.email}? No podrá editar ni descargar su CV.`)) return;
     setSaving(u.uid);
     try {
-      await setUserRole(u.uid, role, u.permissions);
-      setUsers((all) => all!.map((x) => (x.uid === u.uid ? { ...x, role, permissions: x.permissions ?? (role === 'editor' ? {} : undefined) } : x)));
-      if (role === 'editor') load(); // trae los permisos iniciales
+      await setUserRole(u.uid, role);
+      setUsers((all) => all!.map((x) => (x.uid === u.uid ? { ...x, role } : x)));
     } catch (e) {
       alert(`No se pudo cambiar el rol: ${(e as Error).message}`);
     } finally {
       setSaving(null);
+    }
+  };
+
+  const removeUser = async (u: AppUser) => {
+    const typed = prompt(
+      `Vas a eliminar a ${u.email}: su ficha, su CV y sus solicitudes. Esta acción no se puede deshacer.\n\nEscribe ELIMINAR para confirmar:`,
+    );
+    if (typed?.trim().toUpperCase() !== 'ELIMINAR') return;
+    setSaving(u.uid);
+    try {
+      await deleteUserData(u.uid, u.username);
+      setUsers((all) => all!.filter((x) => x.uid !== u.uid));
+    } catch (e) {
+      alert(`No se pudo eliminar: ${(e as Error).message}`);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const resetPassword = async (u: AppUser) => {
+    if (!confirm(`¿Enviar a ${u.email} un correo para restablecer su contraseña?`)) return;
+    try {
+      await sendPasswordReset(u.email);
+      alert(`Listo: ${u.email} recibirá un enlace para crear una nueva contraseña.`);
+    } catch (e) {
+      alert(`No se pudo enviar: ${(e as Error).message}`);
     }
   };
 
@@ -91,7 +116,7 @@ export default function Users({ currentUid }: { currentUid: string }) {
 
   const shown = useMemo(() => {
     const q = filter.toLowerCase().trim();
-    return (users ?? []).filter((u) => !q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q));
+    return (users ?? []).filter((u) => !q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q) || (u.username ?? '').includes(q));
   }, [users, filter]);
 
   const counts = useMemo(() => {
@@ -115,7 +140,7 @@ export default function Users({ currentUid }: { currentUid: string }) {
         <input
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          placeholder="Buscar por nombre o correo…"
+          placeholder="Buscar por nombre, @usuario o correo…"
           className="rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm w-64"
         />
         <button onClick={load} className="text-sm px-3 py-1.5 rounded-lg bg-neutral-200 dark:bg-neutral-800">
@@ -158,9 +183,13 @@ export default function Users({ currentUid }: { currentUid: string }) {
                     )}
                     <div className="min-w-0">
                       <div className="font-semibold truncate">
-                        {u.name || '(sin nombre)'} {u.uid === currentUid && <span className="text-xs opacity-60">(tú)</span>}
+                        {u.name || '(sin nombre)'} {u.username && <span className="text-xs font-normal text-primary">@{u.username}</span>}{' '}
+                        {u.uid === currentUid && <span className="text-xs opacity-60">(tú)</span>}
                       </div>
-                      <div className="text-xs opacity-70 truncate">{u.email}</div>
+                      <div className="text-xs opacity-70 truncate">
+                        <i className={`${u.provider === 'google.com' ? 'fab fa-google' : 'fas fa-envelope'} mr-1`} title={u.provider === 'google.com' ? 'Google' : 'Correo y contraseña'} />
+                        {u.email}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -189,7 +218,7 @@ export default function Users({ currentUid }: { currentUid: string }) {
                   {saving === u.uid && <i className="fas fa-spinner fa-spin ml-2 text-xs" />}
                 </td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
-                  {u.role === 'editor' && (
+                  {u.role !== 'owner' && u.role !== 'blocked' && (
                     <button
                       onClick={() => setEditingPerms(u)}
                       className="mr-2 text-xs px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-700 dark:text-blue-400 hover:bg-blue-500/25"
@@ -200,6 +229,27 @@ export default function Users({ currentUid }: { currentUid: string }) {
                   <button onClick={() => openCv(u)} className="text-xs px-3 py-1.5 rounded-lg bg-neutral-200 dark:bg-neutral-800 hover:bg-primary hover:text-white">
                     <i className="fas fa-eye mr-1" /> Ver CV
                   </button>
+                  {u.role !== 'owner' && (
+                    <>
+                      {u.provider !== 'google.com' && (
+                        <button
+                          onClick={() => resetPassword(u)}
+                          title="Enviar correo para restablecer la contraseña"
+                          className="ml-2 text-xs w-8 h-8 rounded-lg bg-neutral-200 dark:bg-neutral-800 hover:bg-amber-500 hover:text-white"
+                        >
+                          <i className="fas fa-unlock-keyhole" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => removeUser(u)}
+                        disabled={saving === u.uid}
+                        title="Eliminar usuario"
+                        className="ml-2 text-xs w-8 h-8 rounded-lg text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white disabled:opacity-50"
+                      >
+                        <i className="fas fa-trash" />
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
@@ -274,7 +324,7 @@ function CvModal({ user, data, main, onClose }: { user: AppUser; data: Portfolio
   );
 }
 
-/** Matriz de permisos por sección para un editor. */
+/** Matriz de permisos: qué puede hacer el usuario en cada sección de SU PROPIO CV. */
 function PermissionsModal({ user, onClose, onSaved }: { user: AppUser; onClose: () => void; onSaved: (p: Permissions) => void }) {
   const [perms, setPerms] = useState<Permissions>({ ...(user.permissions ?? {}) });
   const [saving, setSaving] = useState(false);
@@ -305,8 +355,8 @@ function PermissionsModal({ user, onClose, onSaved }: { user: AppUser; onClose: 
           </button>
         </div>
         <p className="text-xs opacity-70 mb-4">
-          <strong>Ver</strong>: solo lectura · <strong>Editar</strong>: modifica lo existente · <strong>Crear y eliminar</strong>: control total
-          de la sección. Se aplican también en el servidor.
+          Qué puede hacer en <strong>su propio CV</strong> (/mi-cv). <strong>Ver</strong>: solo lectura · <strong>Editar</strong>: modifica lo
+          existente (por defecto) · <strong>Crear y eliminar</strong>: control total. Se aplican también en el servidor.
         </p>
         <div className="flex flex-wrap gap-2 mb-4 text-xs">
           <span className="opacity-70 self-center">Aplicar a todo:</span>
@@ -345,7 +395,7 @@ function PermissionsModal({ user, onClose, onSaved }: { user: AppUser; onClose: 
                             type="radio"
                             name={`perm-${s.key}`}
                             aria-label={`${s.label}: ${PERM_LABELS[l]}`}
-                            checked={(perms[s.key] ?? 'none') === l}
+                            checked={(perms[s.key] ?? DEFAULT_LEVEL) === l}
                             onChange={() => setPerms({ ...perms, [s.key]: l })}
                           />
                         </td>

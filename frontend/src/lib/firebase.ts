@@ -2,7 +2,7 @@ import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import {
   getFirestore, doc, getDoc, setDoc, addDoc, collection, getDocs, query, orderBy, limit, updateDoc, deleteDoc, writeBatch,
 } from 'firebase/firestore/lite';
-import type { ContactMessage, CvPdfMeta, PortfolioData } from './types';
+import { newId, type ContactMessage, type CvPdfMeta, type PortfolioData } from './types';
 import seed from '../data/portfolio.json';
 
 const config = {
@@ -70,74 +70,76 @@ export async function savePortfolio(data: PortfolioData): Promise<void> {
 }
 
 // ---------- Usuarios y roles ----------
-//  owner   → el administrador principal (fijo por UID, no se puede asignar)
-//  editor  → edita el portafolio principal, publica el PDF y lee mensajes
+//  owner   → el administrador: único con acceso al panel y a la edición del portafolio.
+//            Fijo por UID (no se asigna ni se quita).
 //  premium → su CV + página pública compartible (permiso especial / de pago)
-//  user    → solo su propio CV (/mi-cv)
+//  user    → su propio CV (/mi-cv). Rol por defecto al registrarse.
 //  blocked → sin acceso
 
-export type Role = 'owner' | 'editor' | 'premium' | 'user' | 'blocked';
+export type Role = 'owner' | 'premium' | 'user' | 'blocked';
 /** Roles que el administrador puede asignar (owner no se asigna: es fijo). */
-export const ASSIGNABLE_ROLES: Role[] = ['editor', 'premium', 'user', 'blocked'];
+export const ASSIGNABLE_ROLES: Role[] = ['premium', 'user', 'blocked'];
 export const ROLE_LABELS: Record<Role, string> = {
   owner: 'Administrador',
-  editor: 'Editor',
   premium: 'Premium',
   user: 'Usuario',
   blocked: 'Bloqueado',
 };
 
 /**
- * UID del administrador principal. Debe coincidir con OWNER_UID de firestore.rules,
- * que es lo que realmente lo protege (el cliente solo lo usa para mostrar la interfaz).
+ * UID del administrador. Debe coincidir con ownerUid() de firestore.rules,
+ * que es lo que realmente lo protege (el cliente solo lo usa para la interfaz).
  */
 export const OWNER_UID = import.meta.env.PUBLIC_OWNER_UID ?? '';
 
-/** Puede editar el portafolio principal y entrar a /admin. */
-export const isStaff = (role: Role | null | undefined) => role === 'owner' || role === 'editor';
+/** Solo el administrador entra al panel y edita el portafolio. */
+export const isStaff = (role: Role | null | undefined) => role === 'owner';
 /** Puede publicar su CV en una página pública. */
-export const canPublishProfile = (role: Role | null | undefined) => role === 'owner' || role === 'editor' || role === 'premium';
+export const canPublishProfile = (role: Role | null | undefined) => role === 'owner' || role === 'premium';
 
-// ---------- Permisos por sección (para editores) ----------
-// El administrador decide, para cada editor, qué puede hacer en cada sección:
-//   none   → no la ve
+// ---------- Permisos por sección del CV de cada usuario ----------
+// El administrador decide qué puede hacer cada usuario en SU PROPIO CV (/mi-cv):
+//   none   → no ve la sección
 //   view   → la ve, solo lectura
 //   edit   → modifica lo existente (no agrega ni elimina elementos)
 //   create → control total: edita, agrega y elimina
+// Por defecto un usuario nuevo puede VER y EDITAR (no agregar ni eliminar); descargar su PDF está permitido.
 // Las reglas de Firestore aplican estos mismos permisos en el servidor.
 
 export type PermLevel = 'none' | 'view' | 'edit' | 'create';
 export const PERM_LEVELS: PermLevel[] = ['none', 'view', 'edit', 'create'];
 export const PERM_LABELS: Record<PermLevel, string> = { none: 'Sin acceso', view: 'Ver', edit: 'Editar', create: 'Crear y eliminar' };
 
-/** Secciones con permisos. Las claves coinciden con los campos del documento portfolio/main. */
+/** Secciones con permisos. Las claves coinciden con los campos del documento profiles/{uid}. */
 export const PERM_SECTIONS = [
-  { key: 'profile', label: 'Perfil (nombre, foto, resumen)', group: 'Contenido' },
-  { key: 'contact', label: 'Contacto', group: 'Contenido' },
-  { key: 'experience', label: 'Experiencia', group: 'Contenido' },
-  { key: 'education', label: 'Estudios', group: 'Contenido' },
-  { key: 'skills', label: 'Habilidades', group: 'Contenido' },
-  { key: 'projects', label: 'Proyectos', group: 'Contenido' },
-  { key: 'languages', label: 'Idiomas', group: 'Contenido' },
-  { key: 'hobbies', label: 'Hobbies', group: 'Contenido' },
-  { key: 'cv', label: 'Diseño del CV (constructor)', group: 'CV y bot' },
-  { key: 'bot', label: 'Bot asistente', group: 'CV y bot' },
-  { key: 'pdf', label: 'Publicar el PDF del bot', group: 'CV y bot' },
-  { key: 'messages', label: 'Mensajes de contacto', group: 'Otros' },
+  { key: 'profile', label: 'Perfil (nombre, foto, resumen)', group: 'Información' },
+  { key: 'contact', label: 'Contacto', group: 'Información' },
+  { key: 'experience', label: 'Experiencia', group: 'Información' },
+  { key: 'education', label: 'Estudios', group: 'Información' },
+  { key: 'skills', label: 'Habilidades', group: 'Información' },
+  { key: 'projects', label: 'Proyectos', group: 'Información' },
+  { key: 'languages', label: 'Idiomas', group: 'Información' },
+  { key: 'hobbies', label: 'Hobbies', group: 'Información' },
+  { key: 'cv', label: 'Diseño del CV (constructor)', group: 'CV' },
+  { key: 'pdf', label: 'Descargar su CV en PDF', group: 'CV' },
 ] as const;
-export type PermSection = (typeof PERM_SECTIONS)[number]['key'];
+export type PermSection = (typeof PERM_SECTIONS)[number]['key'] | 'bot' | 'messages';
 export type Permissions = Partial<Record<PermSection, PermLevel>>;
-
-/** Permisos por defecto al nombrar editor a alguien: puede ver todo, no cambia nada. */
-export const DEFAULT_EDITOR_PERMS: Permissions = Object.fromEntries(PERM_SECTIONS.map((s) => [s.key, 'view'])) as Permissions;
 
 const LEVEL_RANK: Record<PermLevel, number> = { none: 0, view: 1, edit: 2, create: 3 };
 
-/** ¿El usuario tiene al menos `need` en la sección? El administrador siempre puede todo. */
-export function can(role: Role | null | undefined, perms: Permissions | undefined, section: PermSection, need: PermLevel): boolean {
-  if (role === 'owner') return true;
-  if (role !== 'editor') return false;
-  return LEVEL_RANK[perms?.[section] ?? 'none'] >= LEVEL_RANK[need];
+/** Nivel por defecto de un usuario nuevo: ver y editar. */
+export const DEFAULT_LEVEL: PermLevel = 'edit';
+
+/** Nivel efectivo de un usuario en una sección de su CV. */
+export const levelIn = (perms: Permissions | undefined, section: PermSection): PermLevel => perms?.[section] ?? DEFAULT_LEVEL;
+
+/** ¿Alcanza el nivel `need`? */
+export const atLeast = (level: PermLevel, need: PermLevel) => LEVEL_RANK[level] >= LEVEL_RANK[need];
+
+/** Compatibilidad: el administrador puede todo en el panel. */
+export function can(role: Role | null | undefined, _perms: Permissions | undefined, _section: PermSection, _need: PermLevel): boolean {
+  return role === 'owner';
 }
 
 export interface AppUser {
@@ -146,6 +148,8 @@ export interface AppUser {
   name: string;
   photoURL: string;
   role: Role;
+  username?: string;
+  provider?: string;
   permissions?: Permissions;
   createdAt: string;
   lastLogin: string;
@@ -160,20 +164,31 @@ export interface UserAccess {
  * Registra al usuario la primera vez que entra (rol "user") y actualiza su
  * último acceso en las siguientes. Devuelve su rol actual.
  */
-export async function ensureUserAccess(user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }): Promise<UserAccess> {
+export async function ensureUserAccess(user: AuthUserLike): Promise<UserAccess> {
   const role = await ensureUserProfile(user);
-  if (role !== 'editor') return { role, permissions: {} };
+  if (role === 'owner') return { role, permissions: {} };
   const snap = await getDoc(doc(db(), 'users', user.uid));
   return { role, permissions: (snap.data()?.permissions as Permissions) ?? {} };
 }
 
-export async function ensureUserProfile(user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }): Promise<Role> {
+type AuthUserLike = {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  providerData?: { providerId: string }[];
+};
+
+export async function ensureUserProfile(user: AuthUserLike): Promise<Role> {
   const ref = doc(db(), 'users', user.uid);
   const now = new Date().toISOString();
-  const basics = { email: user.email ?? '', name: user.displayName ?? '', photoURL: user.photoURL ?? '', lastLogin: now };
+  const provider = user.providerData?.[0]?.providerId ?? 'password';
+  const basics = { email: user.email ?? '', name: user.displayName ?? '', photoURL: user.photoURL ?? '', provider, lastLogin: now };
   const snap = await getDoc(ref);
-  if (!snap.exists()) await setDoc(ref, { ...basics, role: 'user', createdAt: now });
-  else await updateDoc(ref, basics).catch(() => {});
+  if (!snap.exists()) {
+    // Si otra pestaña/listener lo creó en paralelo, la creación falla: basta con actualizar
+    await setDoc(ref, { ...basics, role: 'user', createdAt: now }).catch(() => updateDoc(ref, basics).catch(() => {}));
+  } else await updateDoc(ref, basics).catch(() => {});
   if (OWNER_UID && user.uid === OWNER_UID) return 'owner';
   return snap.exists() ? ((snap.data().role as Role) ?? 'user') : 'user';
 }
@@ -186,12 +201,66 @@ export async function listUsers(): Promise<AppUser[]> {
   });
 }
 
-/** Cambia el rol. Al nombrar editor, si no tenía permisos, recibe los de solo lectura. */
-export const setUserRole = (uid: string, role: Role, currentPerms?: Permissions) =>
-  updateDoc(
-    doc(db(), 'users', uid),
-    role === 'editor' && !currentPerms ? { role, permissions: DEFAULT_EDITOR_PERMS } : { role },
-  );
+export const setUserRole = (uid: string, role: Role) => updateDoc(doc(db(), 'users', uid), { role });
+
+// ---------- Nombres de usuario (únicos) ----------
+// usernames/{nombre} → { uid }. Se reserva en la misma operación que se guarda
+// en users/{uid}.username, y las reglas garantizan que no se repita.
+
+export const USERNAME_RE = /^[a-z0-9](?:[a-z0-9._]{1,18}[a-z0-9])$/;
+const RESERVED = new Set(['admin', 'administrador', 'root', 'soporte', 'support', 'sure', 'suredevelopments', 'ronny', 'perfil', 'cv', 'api']);
+
+/** Normaliza y valida. Devuelve un mensaje de error o null si es válido. */
+export function usernameIssue(name: string): string | null {
+  if (!USERNAME_RE.test(name)) return 'De 3 a 20 caracteres: letras minúsculas, números, punto o guion bajo (sin empezar ni terminar con ellos).';
+  if (RESERVED.has(name)) return 'Ese nombre está reservado.';
+  return null;
+}
+
+export async function isUsernameAvailable(name: string): Promise<boolean> {
+  const snap = await getDoc(doc(db(), 'usernames', name));
+  return !snap.exists();
+}
+
+/** Reserva el nombre y lo asigna al usuario (atómico). Falla si ya está tomado. */
+export async function claimUsername(uid: string, name: string) {
+  const batch = writeBatch(db());
+  batch.set(doc(db(), 'usernames', name), { uid, createdAt: new Date().toISOString() });
+  batch.update(doc(db(), 'users', uid), { username: name });
+  await batch.commit();
+}
+
+export async function fetchMyUsername(uid: string): Promise<string | null> {
+  const snap = await getDoc(doc(db(), 'users', uid));
+  return (snap.data()?.username as string) ?? null;
+}
+
+/** Convierte un nombre de usuario en UID (para /perfil?u=nombre). */
+export async function resolveUsername(name: string): Promise<string | null> {
+  const snap = await getDoc(doc(db(), 'usernames', name.toLowerCase()));
+  return snap.exists() ? (snap.data().uid as string) : null;
+}
+
+/**
+ * Elimina los datos de un usuario (ficha, CV y solicitud). La cuenta de acceso
+ * de Firebase Auth solo se puede borrar desde un servidor (Admin SDK); si la
+ * persona vuelve a entrar se registrará como usuaria nueva. Para impedir el
+ * acceso de forma permanente, usa el rol "Bloqueado".
+ */
+export async function deleteUserData(uid: string, username?: string) {
+  const batch = writeBatch(db());
+  if (username) batch.delete(doc(db(), 'usernames', username));
+  batch.delete(doc(db(), 'profiles', uid));
+  batch.delete(doc(db(), 'roleRequests', uid));
+  batch.delete(doc(db(), 'users', uid));
+  await batch.commit();
+}
+
+/** Envía al usuario el correo de Firebase para restablecer su contraseña. */
+export async function sendPasswordReset(email: string) {
+  const { getAuth, sendPasswordResetEmail } = await import('firebase/auth');
+  await sendPasswordResetEmail(getAuth(getFirebaseApp()!), email);
+}
 
 export const setUserPermissions = (uid: string, permissions: Permissions) => updateDoc(doc(db(), 'users', uid), { permissions });
 
@@ -207,23 +276,36 @@ export async function saveProfile(uid: string, data: PortfolioData): Promise<voi
 }
 
 /** Plantilla vacía para un usuario nuevo, con lo que ya sabemos de su cuenta de Google. */
-export function blankProfile(user?: { displayName: string | null; email: string | null; photoURL: string | null }): PortfolioData {
+export function blankProfile(user?: { displayName: string | null; email: string | null; photoURL: string | null }, photo?: string): PortfolioData {
+  const L = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
   return {
     profile: {
-      name: user?.displayName ?? '',
+      name: user?.displayName || 'Tu Nombre',
       title: 'Tu título profesional',
-      photoUrl: user?.photoURL ?? '',
-      summary: 'Escribe aquí un resumen breve de tu perfil profesional.',
-      about: '',
+      photoUrl: photo || user?.photoURL || '',
+      summary: `**Lorem ipsum** dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`,
+      about: `¡Hola! ${L} Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.`,
     },
-    contact: { phone: '', email: user?.email ?? '', linkedin: '', github: '', location: '' },
-    skills: [],
-    experience: [],
-    education: [],
-    projects: [],
-    languages: [],
-    hobbies: [],
-    cv: structuredClone(seedData.cv),
+    contact: { phone: '000 000 0000', email: user?.email ?? 'tu@correo.com', linkedin: 'https://www.linkedin.com/in/tu-usuario', github: 'https://github.com/tu-usuario', location: 'Ciudad, País' },
+    skills: [
+      { id: newId(), category: 'Lorem', items: 'Ipsum, Dolor, Sit, Amet' },
+      { id: newId(), category: 'Consectetur', items: 'Adipiscing, Elit, Sed, Do' },
+    ],
+    experience: [
+      { id: newId(), company: 'Empresa Lorem S.A.', role: 'Cargo Ipsum', start: '01/2023', end: 'actual', description: `- ${L}\n- Sed do eiusmod tempor incididunt ut labore.` },
+      { id: newId(), company: 'Dolor Sit Amet', role: 'Cargo Consectetur', start: '01/2021', end: '12/2022', description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.' },
+    ],
+    education: [
+      { id: newId(), title: 'Título Lorem Ipsum', kind: 'Título', institution: 'Universidad Dolor Sit', description: '' },
+      { id: newId(), title: 'Curso Consectetur', kind: 'Curso', institution: 'Institución Amet', description: '' },
+    ],
+    projects: [{ id: newId(), name: 'Proyecto Lorem', url: '', description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse.' }],
+    languages: [
+      { id: newId(), name: 'Español', level: 'Nativo' },
+      { id: newId(), name: 'Inglés', level: 'Intermedio' },
+    ],
+    hobbies: ['Lorem ipsum', 'Dolor sit amet'],
+    cv: { accentColor: '#5b8ec4', layout: structuredClone(seedData.cv.layout), titles: {}, custom: [] },
     bot: { name: '', greeting: '', faqs: [] },
   };
 }
@@ -340,7 +422,7 @@ export interface RoleRequest {
   uid: string;
   email: string;
   name: string;
-  requestedRole: 'premium' | 'editor';
+  requestedRole: 'premium';
   message: string;
   paymentRef: string;
   status: RequestStatus;
@@ -380,8 +462,9 @@ export async function reviewRoleRequest(r: RoleRequest, approve: boolean) {
 // ---------- Página pública del CV (premium) ----------
 
 /** Lee un CV publicado. Las reglas solo lo permiten si el dueño lo hizo público y tiene un rol que lo permite. */
-export async function fetchPublicProfile(uid: string): Promise<PortfolioData | null> {
+export async function fetchPublicProfile(idOrUsername: string): Promise<PortfolioData | null> {
   if (!firebaseConfigured) return null;
+  const uid = (await resolveUsername(idOrUsername).catch(() => null)) ?? idOrUsername;
   const snap = await getDoc(doc(db(), 'profiles', uid));
   return snap.exists() ? withDefaults(snap.data() as PortfolioData, blankProfile()) : null;
 }

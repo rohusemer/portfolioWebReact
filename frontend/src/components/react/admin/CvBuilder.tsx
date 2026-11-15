@@ -230,13 +230,14 @@ export function PublishCard({
   updatedAt,
   publishing,
   onPublish,
-  onPreviewPdf,
+  onDownloadPdf,
 }: {
   pdfMeta: CvPdfMeta | null;
   updatedAt?: string;
   publishing: boolean;
   onPublish: () => void;
-  onPreviewPdf: () => void;
+  /** Descarga el CV tal como se ve ahora (sin publicarlo) */
+  onDownloadPdf: () => void;
 }) {
   const outdated = !pdfMeta || !updatedAt || updatedAt > pdfMeta.publishedAt;
   return (
@@ -260,8 +261,12 @@ export function PublishCard({
           : 'Todavía no has publicado ningún PDF. Los visitantes verán el enlace a /cv hasta que lo hagas.'}
       </p>
       <div className="flex gap-2">
-        <button onClick={onPreviewPdf} className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-white/80 dark:bg-neutral-800">
-          <i className="fas fa-eye mr-1" /> Vista previa PDF
+        <button
+          onClick={onDownloadPdf}
+          title="Descarga el CV tal como lo ves ahora, sin publicarlo"
+          className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-white/80 dark:bg-neutral-800"
+        >
+          <i className="fas fa-download mr-1" /> Descargar PDF
         </button>
         <button
           onClick={onPublish}

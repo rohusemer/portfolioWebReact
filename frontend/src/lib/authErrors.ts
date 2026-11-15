@@ -7,7 +7,25 @@ export function authErrorMessage(err: unknown): string | null {
       return null;
     case 'auth/configuration-not-found':
     case 'auth/operation-not-allowed':
-      return 'El inicio de sesión con Google no está habilitado en Firebase. Actívalo en la consola: Authentication → Método de acceso → Google.';
+      return 'Este método de acceso no está habilitado en Firebase. Actívalo en la consola: Authentication → Método de acceso (Google y/o Correo electrónico/contraseña).';
+    case 'auth/email-already-in-use':
+      return 'Ya existe una cuenta con ese correo. Inicia sesión o recupera tu contraseña.';
+    case 'auth/invalid-email':
+      return 'El correo no es válido.';
+    case 'auth/weak-password':
+      return 'La contraseña es demasiado débil. Usa al menos 8 caracteres con letras y números.';
+    case 'auth/missing-password':
+      return 'Escribe tu contraseña.';
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'Correo o contraseña incorrectos.';
+    case 'auth/user-disabled':
+      return 'Esta cuenta está deshabilitada.';
+    case 'auth/too-many-requests':
+      return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+    case 'auth/account-exists-with-different-credential':
+      return 'Ese correo ya está registrado con otro método. Entra con el método que usaste al registrarte.';
     case 'auth/unauthorized-domain':
       return `Este dominio (${location.hostname}) no está autorizado. Agrégalo en Firebase: Authentication → Configuración → Dominios autorizados.`;
     case 'auth/popup-blocked':

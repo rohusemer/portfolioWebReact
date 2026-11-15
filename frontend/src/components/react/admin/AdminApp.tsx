@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
-import { fetchCvPdfMeta, fetchPortfolio, ensureUserAccess, isStaff, can, type Permissions, type PermLevel, type PermSection, listContactMessages, publishCvPdf, firebaseConfigured, getFirebaseApp, savePortfolio, seedData, withDefaults, type Role } from '../../../lib/firebase';
+import { getAuth, onAuthStateChanged, signOut, type User } from 'firebase/auth';
+import { fetchCvPdfMeta, fetchPortfolio, listRoleRequests, ensureUserAccess, isStaff, can, type Permissions, type PermLevel, type PermSection, listContactMessages, publishCvPdf, firebaseConfigured, getFirebaseApp, savePortfolio, seedData, withDefaults, type Role } from '../../../lib/firebase';
 import type { CvPdfMeta, PortfolioData } from '../../../lib/types';
 import { cvFileBase, downloadFile, toMarkdown } from '../../../lib/cvMarkdown';
 import PortfolioSections from '../PortfolioSections';
 import CvBuilder, { PublishCard } from './CvBuilder';
-import { previewCvPdf, renderCvPdf } from '../../../lib/cvPdf';
+import { downloadCvPdf, renderCvPdf } from '../../../lib/cvPdf';
 import Editor from './Editor';
 import Messages from './Messages';
 import Users from './Users';
-import { alertAuthError } from '../../../lib/authErrors';
+import { useIdleLogout } from '../../../lib/useIdleLogout';
+import AuthForm from '../AuthForm';
 
 type AuthState = { status: 'loading' } | { status: 'out' } | { status: 'in'; user: User; role: Role | null; permissions: Permissions };
 
@@ -45,14 +46,8 @@ export default function AdminApp() {
       <Centered>
         <i className="fas fa-lock text-4xl text-primary mb-4" />
         <h1 className="text-2xl font-bold mb-2">Panel de administración</h1>
-        <p className="text-sm opacity-80 mb-6">Inicia sesión para editar tu portafolio y generar tu CV.</p>
-        <button
-          onClick={() => signInWithPopup(getAuth(getFirebaseApp()!), new GoogleAuthProvider()).catch(alertAuthError)}
-          className="px-5 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-accent"
-        >
-          <i className="fab fa-google mr-2" />
-          Entrar con Google
-        </button>
+        <p className="text-sm opacity-80 mb-6">Acceso exclusivo del administrador.</p>
+        <AuthForm />
       </Centered>
     );
   }
@@ -96,6 +91,7 @@ function Dashboard({ user, role, permissions }: { user: User; role: Role; permis
   const may = (s: PermSection, need: PermLevel) => can(role, permissions, s, need);
   const contentSections: PermSection[] = ['profile', 'contact', 'experience', 'education', 'skills', 'projects', 'languages', 'hobbies', 'bot'];
   const leaving = useRef(false);
+  const idleWarning = useIdleLogout(30);
 
   const [data, setData] = useState<PortfolioData | null>(null);
   const [saved, setSaved] = useState<string>('');
@@ -104,10 +100,15 @@ function Dashboard({ user, role, permissions }: { user: User; role: Role; permis
   const fileInput = useRef<HTMLInputElement>(null);
   const [view, setView] = useState<View>('cv');
   const [unread, setUnread] = useState(0);
+  const [pendingReqs, setPendingReqs] = useState(0);
   const [pdfMeta, setPdfMeta] = useState<CvPdfMeta | null>(null);
   const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
+    if (role === 'owner')
+      listRoleRequests()
+        .then((r) => setPendingReqs(r.filter((x) => x.status === 'pending').length))
+        .catch((e) => console.error('Solicitudes:', e));
     if (may('messages', 'view')) listContactMessages()
       .then((m) => setUnread(m.filter((x) => !x.read).length))
       .catch(() => {});
@@ -174,11 +175,11 @@ function Dashboard({ user, role, permissions }: { user: User; role: Role; permis
     }
   };
 
-  const previewPdf = async () => {
+  const downloadPdf = async () => {
     if (!data) return;
-    setStatus({ kind: 'busy', msg: 'Generando vista previa…' });
+    setStatus({ kind: 'busy', msg: 'Generando PDF…' });
     try {
-      await previewCvPdf(data);
+      await downloadCvPdf(data);
       setStatus(null);
     } catch (e) {
       setStatus({ kind: 'err', msg: `No se pudo generar el PDF: ${(e as Error).message}` });
@@ -219,7 +220,7 @@ function Dashboard({ user, role, permissions }: { user: User; role: Role; permis
     ...(may('cv', 'view') ? [{ key: 'cv' as View, icon: 'fa-table-columns', label: 'Constructor de CV' }] : []),
     ...(contentSections.some((s) => may(s, 'view')) ? [{ key: 'content' as View, icon: 'fa-pen', label: 'Contenido web' }] : []),
     ...(may('messages', 'view') ? [{ key: 'messages' as View, icon: 'fa-inbox', label: 'Mensajes', badge: unread }] : []),
-    ...(role === 'owner' ? [{ key: 'users' as View, icon: 'fa-users', label: 'Usuarios y permisos' }] : []),
+    ...(role === 'owner' ? [{ key: 'users' as View, icon: 'fa-users', label: 'Usuarios y permisos', badge: pendingReqs }] : []),
   ];
   const activeView: View | undefined = tabs.some((t) => t.key === view) ? view : tabs[0]?.key;
 
@@ -287,6 +288,12 @@ function Dashboard({ user, role, permissions }: { user: User; role: Role; permis
         </button>
       </header>
 
+      {idleWarning && (
+        <div className="px-4 py-2 text-sm bg-red-500/15 text-red-700 dark:text-red-300">
+          <i className="fas fa-clock mr-1" /> Por seguridad, la sesión se cerrará en 1 minuto por inactividad.
+        </div>
+      )}
+
       {status && (
         <div
           className={`px-4 py-2 text-sm ${
@@ -312,7 +319,7 @@ function Dashboard({ user, role, permissions }: { user: User; role: Role; permis
           topCard={
             <>
               {may('pdf', 'edit') && (
-                <PublishCard pdfMeta={pdfMeta} updatedAt={data.updatedAt} publishing={publishing} onPublish={publishPdf} onPreviewPdf={previewPdf} />
+                <PublishCard pdfMeta={pdfMeta} updatedAt={data.updatedAt} publishing={publishing} onPublish={publishPdf} onDownloadPdf={downloadPdf} />
               )}
               {role === 'owner' && (
                 <button

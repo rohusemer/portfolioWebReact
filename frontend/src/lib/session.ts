@@ -76,10 +76,9 @@ export function resumeSessionIfHinted() {
   if (typeof window !== 'undefined' && storage.get(HINT_KEY)) startSession();
 }
 
-export async function signIn() {
-  await startSession();
-  const { getAuth, GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
-  await signInWithPopup(getAuth(getFirebaseApp()!), new GoogleAuthProvider());
+/** Abre el modal de acceso (iniciar sesión / crear cuenta / Google). */
+export async function signIn(mode: 'login' | 'register' = 'login') {
+  window.dispatchEvent(new CustomEvent('open-auth', { detail: mode }));
 }
 
 export async function signOutUser() {

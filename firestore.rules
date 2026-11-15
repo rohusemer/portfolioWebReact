@@ -7,18 +7,21 @@ rules_version = '2';
 // firmado por Google (RS256, caduca en 1 h y se renueva solo). Firestore valida
 // la firma en el servidor; `request.auth` solo existe si el token es válido.
 //
-// Autorización (users/{uid}.role):
-//   owner   → administrador principal. FIJO por UID (no se puede asignar ni quitar).
-//   editor  → accede al panel con permisos por sección (ver / editar / crear).
+// Roles (users/{uid}.role):
+//   owner   → el administrador. FIJO por UID. Único con acceso al panel, al
+//             portafolio, al PDF del bot, a los mensajes y a la gestión de usuarios.
 //   premium → su CV + página pública compartible.
-//   user    → solo su propio CV. Rol por defecto al registrarse.
+//   user    → su propio CV. Rol por defecto al registrarse.
 //   blocked → sin acceso.
-// Solo el owner asigna roles. Nadie puede cambiar su propio rol.
+//
+// Permisos por sección (users/{uid}.permissions): el administrador decide qué
+// puede hacer cada usuario en SU PROPIO CV (profiles/{uid}):
+//   none | view | edit (modifica, sin agregar/eliminar; POR DEFECTO) | create (todo)
 // ============================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // UID del administrador principal (también en PUBLIC_OWNER_UID del frontend)
+    // UID del administrador (también en PUBLIC_OWNER_UID del frontend)
     function ownerUid() {
       return 'x8d0hCPRy0bNgwHeub4C7ZB7K2q2';
     }
@@ -40,31 +43,24 @@ service cloud.firestore {
       return signedIn() ? roleOf(request.auth.uid) : 'none';
     }
 
-    function isStaff() {
-      return myRole() in ['owner', 'editor'];
-    }
-
     function onlyChanges(keys) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
     }
 
-    // ---- Permisos por sección de los editores: users/{uid}.permissions ----
-    //   none | view | edit (modifica, sin agregar/eliminar) | create (todo)
+    // ---- Permisos del usuario sobre su propio CV (por defecto: ver y editar) ----
     function perm(section) {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data
-        .get('permissions', {}).get(section, 'none');
+      return isOwner() ? 'create'
+        : get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+            .get('permissions', {}).get(section, 'edit');
     }
 
-    function canAtLeastEdit(section) {
-      return isOwner() || (myRole() == 'editor' && perm(section) in ['edit', 'create']);
+    // Segundo factor del registro: el correo debe estar verificado (Google ya lo verifica)
+    function verified() {
+      return request.auth.token.email_verified == true;
     }
 
-    function canView(section) {
-      return isOwner() || (myRole() == 'editor' && perm(section) in ['view', 'edit', 'create']);
-    }
-
-    // Un campo modificado del portafolio es válido si el editor tiene "create",
-    // o "edit" sin cambiar la cantidad de elementos (no agrega ni elimina).
+    // Un campo modificado es válido si el usuario tiene "create", o "edit" sin
+    // cambiar la cantidad de elementos (no agrega ni elimina).
     function fieldOk(k, changed) {
       return !(k in changed)
         || perm(k) == 'create'
@@ -72,31 +68,27 @@ service cloud.firestore {
           && (!(resource.data[k] is list) || request.resource.data[k].size() == resource.data[k].size()));
     }
 
-    function editorPortfolioWriteOk() {
+    function profileUpdateOk() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
-      return myRole() == 'editor'
-        && changed.hasOnly(['profile', 'contact', 'skills', 'experience', 'education', 'projects', 'languages', 'hobbies', 'cv', 'bot', 'updatedAt'])
+      return changed.hasOnly(['profile', 'contact', 'skills', 'experience', 'education', 'projects', 'languages', 'hobbies', 'cv', 'bot', 'isPublic', 'updatedAt'])
         && fieldOk('profile', changed) && fieldOk('contact', changed) && fieldOk('skills', changed)
         && fieldOk('experience', changed) && fieldOk('education', changed) && fieldOk('projects', changed)
-        && fieldOk('languages', changed) && fieldOk('hobbies', changed) && fieldOk('cv', changed) && fieldOk('bot', changed);
+        && fieldOk('languages', changed) && fieldOk('hobbies', changed) && fieldOk('cv', changed);
     }
 
-    // ---------- Portafolio principal ----------
+    // ---------- Portafolio principal (solo el administrador) ----------
     match /portfolio/{docId} {
       allow read: if true;
-      // El administrador crea/edita todo; un editor solo lo que sus permisos permiten
-      allow create: if isOwner() && request.resource.data.keys().hasAll(['profile', 'experience', 'education']);
-      allow update: if request.resource.data.keys().hasAll(['profile', 'experience', 'education'])
-        && (isOwner() || editorPortfolioWriteOk());
+      allow write: if isOwner() && request.resource.data.keys().hasAll(['profile', 'experience', 'education']);
     }
 
     // PDF publicado que entrega el bot
     match /cvPdf/{docId} {
       allow read: if true;
-      allow write: if canAtLeastEdit('pdf');
+      allow write: if isOwner();
       match /chunks/{chunkId} {
         allow read: if true;
-        allow write: if canAtLeastEdit('pdf');
+        allow write: if isOwner();
       }
     }
 
@@ -114,16 +106,33 @@ service cloud.firestore {
       // Registro automático: solo uno mismo y siempre con rol "user"
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.role == 'user'
-        && request.resource.data.keys().hasOnly(['email', 'name', 'photoURL', 'role', 'createdAt', 'lastLogin']);
+        && request.resource.data.keys().hasOnly(['email', 'name', 'photoURL', 'provider', 'role', 'createdAt', 'lastLogin']);
 
-      // El usuario actualiza sus datos básicos, nunca su rol.
-      // El owner asigna roles (excepto "owner", que es fijo).
-      allow update: if (signedIn() && request.auth.uid == uid && onlyChanges(['email', 'name', 'photoURL', 'lastLogin']))
+      // El usuario actualiza sus datos básicos, nunca su rol ni sus permisos.
+      // Puede elegir su nombre de usuario UNA vez, reservándolo en la misma operación.
+      // El administrador asigna roles y permisos.
+      allow update: if (signedIn() && request.auth.uid == uid && onlyChanges(['email', 'name', 'photoURL', 'provider', 'lastLogin']))
+        || (signedIn() && request.auth.uid == uid && onlyChanges(['username'])
+          && !('username' in resource.data)
+          && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.uid == uid)
         || (isOwner() && uid != ownerUid() && onlyChanges(['role', 'permissions'])
-          && request.resource.data.role in ['editor', 'premium', 'user', 'blocked']
+          && request.resource.data.role in ['premium', 'user', 'blocked']
           && request.resource.data.get('permissions', {}) is map);
 
       allow delete: if isOwner() && uid != ownerUid();
+    }
+
+    // ---------- Nombres de usuario únicos ----------
+    match /usernames/{name} {
+      allow get: if true; // para comprobar disponibilidad y resolver /perfil?u=nombre
+      allow list: if false;
+      allow create: if signedIn()
+        && name.matches('^[a-z0-9][a-z0-9._]{1,18}[a-z0-9]$')
+        && request.resource.data.keys().hasOnly(['uid', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == name;
+      allow update: if false;
+      allow delete: if isOwner();
     }
 
     // ---------- Solicitudes de permiso especial ----------
@@ -131,16 +140,16 @@ service cloud.firestore {
       allow read: if signedIn() && (request.auth.uid == uid || isOwner());
       allow list: if isOwner();
 
-      // El usuario crea/renueva su solicitud, siempre "pendiente" y validada
+      // Requiere correo verificado (las cuentas de Google ya lo están)
       allow create, update: if signedIn() && request.auth.uid == uid && myRole() != 'blocked'
+        && request.auth.token.email_verified == true
         && request.resource.data.keys().hasOnly(['uid', 'email', 'name', 'requestedRole', 'message', 'paymentRef', 'status', 'createdAt'])
         && request.resource.data.uid == uid
         && request.resource.data.status == 'pending'
-        && request.resource.data.requestedRole in ['premium', 'editor']
+        && request.resource.data.requestedRole == 'premium'
         && request.resource.data.message is string && request.resource.data.message.size() <= 1000
         && request.resource.data.paymentRef is string && request.resource.data.paymentRef.size() <= 200;
 
-      // Solo el owner la aprueba o rechaza
       allow update: if isOwner() && onlyChanges(['status', 'reviewedAt'])
         && request.resource.data.status in ['approved', 'rejected'];
 
@@ -149,16 +158,19 @@ service cloud.firestore {
 
     // ---------- CV de cada usuario ----------
     match /profiles/{uid} {
-      // Lectura: el dueño (no bloqueado), el owner, o cualquiera si es público
-      // y el dueño tiene un rol que permite publicar (premium/editor/owner).
       allow read: if (signedIn() && request.auth.uid == uid && myRole() != 'blocked')
         || isOwner()
-        || (resource.data.get('isPublic', false) == true && roleOf(uid) in ['premium', 'editor', 'owner']);
-      allow write: if signedIn() && request.auth.uid == uid && myRole() in ['owner', 'editor', 'premium', 'user'];
+        || (resource.data.get('isPublic', false) == true && roleOf(uid) in ['premium', 'owner']);
+
+      // Creación al registrarse (plantilla + foto). Para editar después, el correo
+      // debe estar verificado y cada cambio debe respetar sus permisos por sección.
+      allow create: if signedIn() && request.auth.uid == uid && myRole() in ['owner', 'premium', 'user'];
+      allow update: if signedIn() && request.auth.uid == uid && myRole() in ['owner', 'premium', 'user'] && verified() && profileUpdateOk();
+      allow delete: if isOwner();
     }
 
     // ---------- Mensajes del bot ----------
-    // Cualquiera puede CREAR uno (validado); solo el staff los lee o gestiona.
+    // Cualquiera puede CREAR uno (validado); solo el administrador los lee.
     match /messages/{msgId} {
       allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'company', 'message', 'createdAt', 'read'])
         && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
@@ -167,9 +179,8 @@ service cloud.firestore {
         && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 2000
         && request.resource.data.createdAt is string
         && request.resource.data.read == false;
-      allow read: if canView('messages');
-      allow delete: if canAtLeastEdit('messages');
-      allow update: if canAtLeastEdit('messages') && onlyChanges(['read']);
+      allow read, delete: if isOwner();
+      allow update: if isOwner() && onlyChanges(['read']);
     }
 
     // Todo lo demás, denegado

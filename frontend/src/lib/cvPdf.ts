@@ -70,20 +70,6 @@ export async function renderCvPdf(data: PortfolioData): Promise<{ base64: string
 }
 
 
-/** Abre el PDF en una pestaña nueva (la pestaña se abre antes de generar para que el navegador no la bloquee). */
-export async function previewCvPdf(data: PortfolioData) {
-  const win = window.open('', '_blank');
-  try {
-    const { blob } = await renderCvPdf(data);
-    const url = URL.createObjectURL(blob);
-    if (win) win.location.href = url;
-    else window.open(url, '_blank');
-  } catch (e) {
-    win?.close();
-    throw e;
-  }
-}
-
 /** Genera el PDF y lo descarga directamente. */
 export async function downloadCvPdf(data: PortfolioData) {
   const { blob, fileName } = await renderCvPdf(data);

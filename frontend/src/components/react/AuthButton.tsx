@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { firebaseConfigured, isStaff, ROLE_LABELS } from '../../lib/firebase';
-import { alertAuthError } from '../../lib/authErrors';
 import { resumeSessionIfHinted, setEditMode, signIn, signOutUser, useSession } from '../../lib/session';
 
 /** Botón de sesión del header: login con Google, avatar y menú de administrador. */
@@ -23,7 +22,7 @@ export default function AuthButton() {
   if (session.status !== 'in' || !session.user) {
     return (
       <button
-        onClick={() => signIn().catch(alertAuthError)}
+        onClick={() => signIn()}
         disabled={session.status === 'loading'}
         title="Iniciar sesión"
         className="text-sm text-dark-text/70 dark:text-light-text/70 hover:text-primary disabled:opacity-50"
@@ -67,6 +66,7 @@ export default function AuthButton() {
               <label className="flex items-center justify-between px-4 py-2.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer">
                 <span>
                   <i className="fas fa-pen w-5" /> Modo edición
+                  <span className="block pl-5 text-[11px] opacity-60 leading-tight">Edita las secciones aquí mismo, en la página de inicio</span>
                 </span>
                 <input type="checkbox" checked={editMode} onChange={(e) => setEditMode(e.target.checked)} />
               </label>

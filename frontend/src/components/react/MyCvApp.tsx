@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { User } from 'firebase/auth';
-import { blankProfile, fetchProfile, firebaseConfigured, isStaff, saveProfile, type Role } from '../../lib/firebase';
-import { signIn, signOutUser, startSession, useSession } from '../../lib/session';
-import { alertAuthError } from '../../lib/authErrors';
-import { downloadCvPdf, previewCvPdf } from '../../lib/cvPdf';
+import { atLeast, blankProfile, claimUsername, fetchMyUsername, fetchProfile, firebaseConfigured, isStaff, levelIn, saveProfile, type Permissions, type PermSection, type Role } from '../../lib/firebase';
+import { signOutUser, startSession, useSession } from '../../lib/session';
+import AuthForm from './AuthForm';
+import { downloadCvPdf } from '../../lib/cvPdf';
 import { cvFileBase, downloadFile, toMarkdown } from '../../lib/cvMarkdown';
 import type { PortfolioData } from '../../lib/types';
 import CvBuilder from './admin/CvBuilder';
 import Editor from './admin/Editor';
 import AccountPanel from './AccountPanel';
+import UsernameField, { type UsernameStatus } from './UsernameField';
+import PortfolioSections from './PortfolioSections';
+import { useIdleLogout } from '../../lib/useIdleLogout';
 
 /** Página /mi-cv: cada usuario registrado arma, guarda y descarga su propio CV. */
 export default function MyCvApp() {
@@ -27,13 +30,10 @@ export default function MyCvApp() {
         <i className="fas fa-id-card text-5xl text-primary mb-4" />
         <h1 className="text-2xl font-bold mb-2">Crea tu CV profesional</h1>
         <p className="text-sm opacity-80 mb-6">
-          Regístrate con tu cuenta de Google, completa tu información y arma tu CV arrastrando bloques. Descárgalo en PDF cuando
+          Regístrate con tu correo o con Google, completa tu información y arma tu CV arrastrando bloques. Descárgalo en PDF cuando
           quieras.
         </p>
-        <button onClick={() => signIn().catch(alertAuthError)} className="px-5 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-accent">
-          <i className="fab fa-google mr-2" />
-          Entrar / Registrarme con Google
-        </button>
+        <AuthForm initialMode="register" />
         <p className="mt-6">
           <a href="/" className="text-sm underline opacity-70">
             Volver al portafolio
@@ -67,15 +67,27 @@ export default function MyCvApp() {
     );
   }
 
-  return <PersonalDashboard user={session.user} role={session.role} />;
+  // Segundo factor del registro: las cuentas de correo deben verificarlo antes de usar la plataforma
+  if (session.role !== 'owner' && !session.user.emailVerified) return <VerifyEmailGate user={session.user} />;
+
+  return (
+    <UsernameGate user={session.user} skip={session.role === 'owner'}>
+      {(username) => <PersonalDashboard user={session.user!} role={session.role!} permissions={session.permissions} username={username} />}
+    </UsernameGate>
+  );
 }
 
-function PersonalDashboard({ user, role }: { user: User; role: Role }) {
+function PersonalDashboard({ user, role, permissions, username }: { user: User; role: Role; permissions: Permissions; username: string | null }) {
   const staff = isStaff(role);
+  // Lo que el administrador le permite hacer en cada sección de su CV
+  const levelOf = (sec: PermSection) => (role === 'owner' ? 'create' : levelIn(permissions, sec));
+  const canDownload = levelOf('pdf') !== 'none';
+  const canDesign = atLeast(levelOf('cv'), 'edit');
+  const idleWarning = useIdleLogout(30);
   const [data, setData] = useState<PortfolioData | null>(null);
   const [saved, setSaved] = useState('');
   const [isNew, setIsNew] = useState(false);
-  const [view, setView] = useState<'cv' | 'info' | 'account'>('cv');
+  const [view, setView] = useState<'cv' | 'info' | 'site' | 'account'>('cv');
   const [status, setStatus] = useState<{ kind: 'ok' | 'err' | 'busy'; msg: string } | null>(null);
 
   useEffect(() => {
@@ -160,6 +172,7 @@ function PersonalDashboard({ user, role }: { user: User; role: Role }) {
             [
               ['cv', 'fa-table-columns', 'Diseño del CV'],
               ['info', 'fa-user-pen', 'Mi información'],
+              ['site', 'fa-globe', 'Mi sitio web'],
               ['account', 'fa-user-gear', 'Mi cuenta'],
             ] as const
           ).map(([key, icon, label]) => (
@@ -193,12 +206,18 @@ function PersonalDashboard({ user, role }: { user: User; role: Role }) {
           <i className="fas fa-cloud-arrow-up mr-1" /> Guardar
         </button>
         <span className="text-xs opacity-60 hidden xl:inline" title={`Rol: ${role}`}>
-          {user.email}
+          {username ? `@${username}` : user.email}
         </span>
         <button onClick={() => signOutUser()} title="Cerrar sesión" className="text-sm px-2">
           <i className="fas fa-right-from-bracket" />
         </button>
       </header>
+
+      {idleWarning && (
+        <div className="px-4 py-2 text-sm bg-red-500/15 text-red-700 dark:text-red-300">
+          <i className="fas fa-clock mr-1" /> Por seguridad, tu sesión se cerrará en 1 minuto por inactividad. Mueve el ratón para continuar.
+        </div>
+      )}
 
       {status && (
         <div
@@ -220,6 +239,8 @@ function PersonalDashboard({ user, role }: { user: User; role: Role }) {
         <CvBuilder
           data={data}
           onChange={setData}
+          readOnly={!canDesign}
+          levelOf={levelOf}
           topCard={
             <div className="rounded-xl p-3 mb-4 bg-primary/10 border border-primary/30">
               <div className="text-sm font-semibold mb-1">
@@ -227,18 +248,18 @@ function PersonalDashboard({ user, role }: { user: User; role: Role }) {
               </div>
               <p className="text-xs opacity-75 mb-3">Haz clic en un bloque para editarlo y arrástralo para reordenarlo. Descarga tu CV cuando quieras.</p>
               <div className="flex gap-2">
-                <button
-                  onClick={() => runPdf(previewCvPdf, 'Generando vista previa…')}
-                  className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-white/80 dark:bg-neutral-800"
-                >
-                  <i className="fas fa-eye mr-1" /> Vista previa
-                </button>
+                {canDownload ? (
                 <button
                   onClick={() => runPdf(downloadCvPdf, 'Generando tu PDF…')}
-                  className="flex-[2] px-3 py-2 rounded-lg text-xs font-semibold bg-primary text-white hover:bg-accent"
+                  className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-primary text-white hover:bg-accent"
                 >
                   <i className="fas fa-download mr-1" /> Descargar PDF
                 </button>
+                ) : (
+                  <p className="text-xs opacity-70">
+                    <i className="fas fa-lock mr-1" /> La descarga del PDF no está habilitada para tu cuenta.
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => downloadFile(`${cvFileBase(data)}.md`, toMarkdown(data), 'text/markdown')}
@@ -249,10 +270,21 @@ function PersonalDashboard({ user, role }: { user: User; role: Role }) {
             </div>
           }
         />
+      ) : view === 'site' ? (
+        <div className="flex-1 overflow-y-auto bg-neutral-200/60 dark:bg-neutral-900/60 p-4">
+          <p className="max-w-5xl mx-auto mb-3 text-xs opacity-70">
+            <i className="fas fa-circle-info mr-1" /> Así se ve tu sitio web con tu información. Edítala en “Mi información” (el texto de
+            “Sobre mí (web)” está en Perfil). {role === 'premium' ? 'Puedes publicarlo desde “Mi cuenta”.' : 'Con el plan Premium puedes publicarlo y compartir el enlace.'}
+          </p>
+          <div className="max-w-5xl mx-auto rounded-xl bg-light-bg dark:bg-dark-bg shadow">
+            <PortfolioSections initialData={data} live={false} />
+          </div>
+        </div>
       ) : view === 'account' ? (
         <div className="flex-1 overflow-y-auto p-4">
           <AccountPanel
             user={user}
+            username={username}
             role={role}
             data={data}
             onTogglePublic={async (isPublic) => {
@@ -271,7 +303,7 @@ function PersonalDashboard({ user, role }: { user: User; role: Role }) {
       ) : (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="max-w-2xl mx-auto">
-            <Editor data={data} onChange={setData} only={['profile', 'contact', 'experience', 'education', 'skills', 'projects', 'extra']} />
+            <Editor data={data} onChange={setData} levelOf={levelOf} only={['profile', 'contact', 'experience', 'education', 'skills', 'projects', 'extra']} />
           </div>
         </div>
       )}
@@ -284,5 +316,97 @@ function Centered({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="max-w-md w-full text-center rounded-xl p-8 bg-white/70 dark:bg-neutral-900/70 shadow-xl">{children}</div>
     </div>
+  );
+}
+
+/** Pantalla obligatoria hasta que el usuario verifique su correo (segundo factor del registro). */
+function VerifyEmailGate({ user }: { user: User }) {
+  const [state, setState] = useState<'idle' | 'sent' | 'checking' | 'pending' | 'error'>('idle');
+
+  const resend = async () => {
+    try {
+      const { sendEmailVerification } = await import('firebase/auth');
+      await sendEmailVerification(user);
+      setState('sent');
+    } catch {
+      setState('error');
+    }
+  };
+
+  const check = async () => {
+    setState('checking');
+    await user.reload();
+    if (user.emailVerified) {
+      await user.getIdToken(true); // renueva el token para que las reglas vean el correo verificado
+      location.reload();
+    } else setState('pending');
+  };
+
+  return (
+    <Centered>
+      <i className="fas fa-envelope-circle-check text-5xl text-primary mb-4" />
+      <h1 className="text-2xl font-bold mb-2">Verifica tu correo</h1>
+      <p className="text-sm opacity-80 mb-1">Te enviamos un enlace de verificación a</p>
+      <p className="font-semibold mb-4 break-all">{user.email}</p>
+      <p className="text-xs opacity-70 mb-6">Ábrelo (revisa también spam) y luego pulsa el botón. Es un paso de seguridad para proteger tu cuenta.</p>
+      <button onClick={check} disabled={state === 'checking'} className="w-full mb-2 px-5 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-accent disabled:opacity-50">
+        {state === 'checking' ? 'Comprobando…' : 'Ya lo verifiqué'}
+      </button>
+      <button onClick={resend} className="w-full mb-4 px-5 py-2 rounded-lg border border-primary text-primary text-sm font-semibold">
+        Reenviar correo
+      </button>
+      {state === 'sent' && <p className="text-xs text-emerald-600 mb-2">Correo reenviado ✔</p>}
+      {state === 'pending' && <p className="text-xs text-amber-600 mb-2">Aún no aparece como verificado. Abre el enlace del correo e inténtalo de nuevo.</p>}
+      {state === 'error' && <p className="text-xs text-red-500 mb-2">No se pudo reenviar. Espera unos minutos.</p>}
+      <button onClick={() => signOutUser()} className="text-xs underline opacity-70">
+        Cerrar sesión
+      </button>
+    </Centered>
+  );
+}
+
+/** Pide elegir un nombre de usuario a quien aún no tiene (registro con Google o cuentas antiguas). */
+function UsernameGate({ user, skip, children }: { user: User; skip: boolean; children: (username: string | null) => ReactNode }) {
+  const [username, setUsername] = useState<string | null | undefined>(undefined);
+  const [value, setValue] = useState('');
+  const [status, setStatus] = useState<UsernameStatus>('empty');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchMyUsername(user.uid)
+      .then(setUsername)
+      .catch(() => setUsername(null));
+  }, [user.uid]);
+
+  if (username === undefined) return <Centered>Cargando…</Centered>;
+  if (username || skip) return <>{children(username)}</>;
+
+  const save = async () => {
+    if (status !== 'ok') return;
+    setSaving(true);
+    setError('');
+    try {
+      await claimUsername(user.uid, value);
+      setUsername(value);
+    } catch {
+      setError('Ese nombre acaba de ser tomado o no es válido. Prueba con otro.');
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Centered>
+      <i className="fas fa-at text-4xl text-primary mb-4" />
+      <h1 className="text-2xl font-bold mb-2">Elige tu nombre de usuario</h1>
+      <p className="text-sm opacity-80 mb-5">Te identificará en la plataforma y será la dirección de tu sitio público. No podrás cambiarlo después.</p>
+      <div className="text-left mb-4">
+        <UsernameField value={value} onChange={setValue} onStatus={setStatus} />
+      </div>
+      {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
+      <button onClick={save} disabled={status !== 'ok' || saving} className="w-full px-5 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-accent disabled:opacity-40">
+        {saving ? 'Guardando…' : 'Continuar'}
+      </button>
+    </Centered>
   );
 }

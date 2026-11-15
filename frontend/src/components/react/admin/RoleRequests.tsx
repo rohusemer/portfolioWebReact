@@ -6,8 +6,22 @@ export default function RoleRequests({ onReviewed }: { onReviewed: () => void })
   const [reqs, setReqs] = useState<RoleRequest[] | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const load = () => listRoleRequests().then(setReqs).catch(() => setReqs([]));
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setReqs(await listRoleRequests());
+    } catch (e) {
+      // Antes se ocultaba el error y la lista aparecía vacía
+      setError((e as Error).message);
+      setReqs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     load();
   }, []);
@@ -41,7 +55,15 @@ export default function RoleRequests({ onReviewed }: { onReviewed: () => void })
         <label className="text-xs flex items-center gap-1">
           <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} /> Ver historial
         </label>
+        <button onClick={load} disabled={loading} className="text-xs px-2.5 py-1 rounded-lg bg-neutral-200 dark:bg-neutral-800">
+          <i className={`fas fa-rotate ${loading ? 'fa-spin' : ''} mr-1`} /> Actualizar
+        </button>
       </div>
+      {error && (
+        <p className="text-xs mb-2 p-2 rounded bg-red-500/10 text-red-600">
+          No se pudieron cargar las solicitudes: {error}
+        </p>
+      )}
       {shown.length === 0 && <p className="text-sm opacity-60">No hay solicitudes {showAll ? '' : 'pendientes'}.</p>}
       <ul className="space-y-2">
         {shown.map((r) => (

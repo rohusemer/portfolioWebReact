@@ -2,6 +2,7 @@
 // portafolio. No usa IA ni servicios externos, así que es gratis e instantáneo.
 
 import type { PortfolioData } from './types';
+import type { GithubInfo, GithubRepo } from './github';
 
 export type BotAction = 'contact' | 'cv';
 export interface BotReply {
@@ -14,6 +15,7 @@ export const QUICK_REPLIES = [
   { label: '👤 ¿Quién es Ronny?', text: '¿Quién es?' },
   { label: '💼 Experiencia', text: 'Experiencia' },
   { label: '🛠️ Tecnologías', text: 'Tecnologías' },
+  { label: '💻 GitHub', text: '¿Qué tiene en GitHub?' },
   { label: '🎓 Estudios', text: 'Estudios' },
   { label: '✉️ Contactarlo', text: 'Quiero contactarlo' },
 ];
@@ -74,7 +76,27 @@ export function openingMessages(d: PortfolioData): BotReply[] {
   ];
 }
 
-export function reply(input: string, d: PortfolioData): BotReply {
+const repoLine = (r: GithubRepo) =>
+  `- [**${r.name}**](${r.url})${r.language ? ` · _${r.language}_` : ''}${r.stars ? ` · ⭐ ${r.stars}` : ''}${r.description ? `: ${r.description}` : ''}`;
+
+function githubSummary(gh: GithubInfo, name: string): string {
+  const langs = gh.languages.slice(0, 5).map((l) => `**${l.name}** (${l.count})`).join(', ');
+  const top = gh.repos.slice(0, 5).map(repoLine).join('\n');
+  return `${name} tiene **${gh.publicRepos} repositorios públicos** en [GitHub](${gh.profileUrl}).${
+    langs ? `\n\nLenguajes que más usa: ${langs}.` : ''
+  }${top ? `\n\nDestacados:\n${top}` : ''}`;
+}
+
+/** Repos de GitHub que usan una tecnología (por lenguaje, tema, nombre o descripción). */
+function reposWith(gh: GithubInfo | null | undefined, tech: string): GithubRepo[] {
+  if (!gh) return [];
+  const t = norm(tech).trim();
+  return gh.repos.filter(
+    (r) => norm(r.language) === t || r.topics.some((x) => norm(x) === t) || ` ${norm(r.name)} ${norm(r.description)} `.includes(` ${t} `),
+  );
+}
+
+export function reply(input: string, d: PortfolioData, gh?: GithubInfo | null): BotReply {
   const text = ` ${norm(input)} `;
   const name = firstName(d);
 
@@ -84,16 +106,40 @@ export function reply(input: string, d: PortfolioData): BotReply {
     if (kws.length && has(text, kws)) return { text: faq.answer };
   }
 
-  // 2. ¿Sabe X tecnología?
+  // 2. GitHub: repos, código, último proyecto
+  if (gh && has(text, ['github', 'repositorio', 'repo', 'codigo', 'open source', 'commits'])) {
+    return { text: githubSummary(gh, name) };
+  }
+  if (gh && has(text, ['ultimo', 'reciente', 'actualmente', 'trabajando'])) {
+    const last = [...gh.repos].sort((a, b) => +new Date(b.pushedAt) - +new Date(a.pushedAt))[0];
+    if (last)
+      return {
+        text: `Lo más reciente en su GitHub es ${repoLine(last).slice(2)} (actualizado el ${new Date(last.pushedAt).toLocaleDateString('es')}).`,
+      };
+  }
+
+  // 3. ¿Sabe X tecnología?
   const techs = techList(d).filter((t) => {
     const n = norm(t.name).trim();
     return n.length > 1 && new RegExp(`(^|\\s)${n.replace(/[.+#]/g, '\\$&')}(\\s|$|\\?)`).test(text);
   });
   if (techs.length) {
     const list = techs.map((t) => `**${t.name}**`).join(', ');
+    const repos = techs.flatMap((t) => reposWith(gh, t.name)).slice(0, 3);
     return {
-      text: `¡Sí! ${name} tiene experiencia con ${list}. ¿Quieres conocer sus proyectos o contactarlo para una entrevista?`,
+      text: `¡Sí! ${name} tiene experiencia con ${list}.${
+        repos.length ? `\n\nPuedes ver código en GitHub:\n${repos.map(repoLine).join('\n')}` : ''
+      }\n\n¿Quieres contactarlo para una entrevista?`,
     };
+  }
+  // Tecnología que no está en el CV pero sí en sus repositorios
+  if (gh) {
+    const known = new Set([...gh.languages.map((l) => l.name), ...gh.repos.flatMap((r) => r.topics)]);
+    const hit = [...known].find((k) => k.length > 1 && new RegExp(`(^|\\s)${norm(k).replace(/[.+#]/g, '\\$&')}(\\s|$|\\?)`).test(text));
+    if (hit) {
+      const repos = reposWith(gh, hit).slice(0, 3);
+      return { text: `Sí, en su GitHub hay proyectos con **${hit}**:\n${repos.map(repoLine).join('\n')}` };
+    }
   }
 
   if (has(text, ['hola', 'buenas', 'hey', 'hi', 'hello', 'saludos'])) {
@@ -126,7 +172,8 @@ export function reply(input: string, d: PortfolioData): BotReply {
   }
   if (has(text, ['proyecto', 'portafolio', 'portfolio', 'project', 'trabajos'])) {
     const items = d.projects.map((p) => `- ${p.url ? `[**${p.name}**](${p.url})` : `**${p.name}**`}: ${p.description}`).join('\n');
-    return { text: `Algunos proyectos de ${name}:\n\n${items}` };
+    const ghTop = gh?.repos.slice(0, 3).map(repoLine).join('\n');
+    return { text: `Algunos proyectos de ${name}:\n\n${items}${ghTop ? `\n\nEn GitHub también tiene:\n${ghTop}` : ''}` };
   }
   if (has(text, ['idioma', 'ingles', 'english', 'espanol', 'language'])) {
     return { text: `Idiomas: ${d.languages.map((l) => `**${l.name}** (${l.level})`).join(', ')}.` };

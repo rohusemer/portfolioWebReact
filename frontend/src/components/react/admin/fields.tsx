@@ -1,4 +1,5 @@
 import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
+import { resizeImageFile } from '../../../lib/image';
 
 // ---------- Permisos de edición del bloque actual ----------
 // readOnly: solo ver. canCreate: puede agregar/eliminar elementos de listas.
@@ -203,19 +204,10 @@ export function ImageField({ label, value, onChange }: { label: string; value: s
 
   const upload = async (file: File) => {
     setError('');
-    if (!/^image\/(png|jpe?g|webp|gif)$/.test(file.type)) return setError('Formato no permitido. Usa JPG, PNG o WebP.');
-    if (file.size > 10 * 1024 * 1024) return setError('La imagen supera los 10 MB.');
     try {
-      const bitmap = await createImageBitmap(file);
-      const side = Math.min(bitmap.width, bitmap.height);
-      const size = Math.min(400, side);
-      const canvas = Object.assign(document.createElement('canvas'), { width: size, height: size });
-      const ctx = canvas.getContext('2d')!;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size);
-      onChange(canvas.toDataURL('image/jpeg', 0.85));
-    } catch {
-      setError('No se pudo leer la imagen.');
+      onChange(await resizeImageFile(file));
+    } catch (e) {
+      setError((e as Error).message || 'No se pudo leer la imagen.');
     }
   };
 

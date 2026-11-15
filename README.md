@@ -28,11 +28,13 @@ que responde a reclutadores y les entrega el CV en PDF.
 | | |
 |---|---|
 | 🌐 **Portafolio público** | Perfil, habilidades, experiencia, estudios y proyectos en una línea de tiempo animada, con modo oscuro. |
-| 🤖 **Bot asistente** | Responde preguntas sobre mi experiencia y tecnologías (*"¿sabe React?"*), **entrega el CV en PDF** y recoge mensajes de contacto. |
+| 🤖 **Bot asistente** | Responde sobre mi experiencia y tecnologías (*"¿sabe React?"*), **se nutre de mis repositorios públicos de GitHub** (lenguajes, proyectos destacados, el más reciente), **entrega el CV en PDF** y recoge mensajes de contacto. |
 | 🧩 **Constructor de CV** | Arrastrar y soltar bloques entre columnas, ocultarlos, renombrarlos, crear bloques propios y cambiar el color. Vista A4 en vivo con aviso si el contenido no cabe en una página. |
 | 📄 **PDF publicado** | Un clic en *"Guardar y publicar PDF"* genera el CV y lo deja listo para que el bot lo entregue. |
 | ✏️ **Edición en vivo** | Al iniciar sesión como admin aparece un botón *Editar* en cada sección del portafolio. |
-| 👥 **Usuarios y permisos** | Cualquiera se registra con Google (rol `user`). Solo el administrador ve quién se registró, asigna roles y da **permisos por sección** (ver / editar / crear) a cada editor. |
+| 🔑 **Registro y acceso** | Con **correo y contraseña** (foto obligatoria, verificación de correo, recuperación de contraseña) o con **Google**. Al entrar, cada usuario va a su propio CV, que empieza con datos de ejemplo hasta que lo edite. |
+| 🌐 **Sitio web por usuario** | Cada usuario edita su propio sitio (vista previa en *Mi sitio web*). Con Premium lo publica en `/perfil?u=<uid>` junto a su CV. |
+| 👥 **Usuarios y permisos** | Solo el administrador entra al panel: ve quién se registró, asigna roles y define **permisos por sección** (ver / editar / crear) sobre el CV de cada usuario. |
 | 🖼️ **Subida de foto** | La foto se sube desde el equipo: se recorta, se reduce a 400×400 y se guarda sin necesidad de Firebase Storage. |
 | 🙋 **Solicitudes de permiso** | Los usuarios piden un permiso especial (Premium o Editor) desde su panel o por correo; el administrador aprueba o rechaza. |
 | 💳 **Plan Premium** | Precio y enlace de pago configurables (PayPal, PayPhone…). Premium da una página pública del CV para compartir. |
@@ -55,33 +57,32 @@ que responde a reclutadores y les entrega el CV en PDF.
 | `/cv` | Todos | El CV en línea, con descarga en PDF (el publicado), impresión y exportación a Markdown. |
 | `/mi-cv` | Usuarios registrados | Su CV (información, diseño, PDF/Markdown) y **Mi cuenta** (solicitar permisos, página pública). |
 | `/perfil?u=<uid>` | Todos | CV público de un usuario Premium, con descarga en PDF. |
-| `/admin` | Administrador / Editor | **Constructor de CV**, **Contenido web**, **Mensajes** y, solo el administrador, **Usuarios y permisos**. |
+| `/admin` | Solo el administrador | **Constructor de CV**, **Contenido web**, **Mensajes** y **Usuarios y permisos**. |
 
-En el navbar aparece la pestaña **Panel** (administrador/editor) o **Mi CV** (usuarios) solo con la sesión iniciada.
+En el navbar aparece la pestaña **Panel** (solo el administrador) o **Mi CV** (usuarios) con la sesión iniciada.
 
 ## 🔐 Roles
 
-| Rol | Portafolio y PDF del bot | Mensajes | Usuarios, permisos y planes | Su CV | Página pública |
-|---|:-:|:-:|:-:|:-:|:-:|
-| `owner` (administrador) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `editor` | ✅ | ✅ | — | ✅ | ✅ |
-| `premium` | — | — | — | ✅ | ✅ |
-| `user` *(por defecto)* | — | — | — | ✅ | — |
-| `blocked` | — | — | — | — | — |
+| Rol | Panel, portafolio, PDF del bot, mensajes | Usuarios, permisos y planes | Su propio CV | Página pública |
+|---|:-:|:-:|:-:|:-:|
+| `owner` (administrador) | ✅ | ✅ | ✅ | ✅ |
+| `premium` | — | — | ✅ | ✅ |
+| `user` *(por defecto)* | — | — | ✅ | — |
+| `blocked` | — | — | — | — |
 
 - **El administrador es fijo**: su UID está en `firestore.rules` (`ownerUid()`) y en `PUBLIC_OWNER_UID`. No se puede asignar ni quitar desde la app, y aunque alguien escribiera `role: "owner"` en la base de datos, no obtendría ningún poder.
 - Nadie puede cambiar su propio rol ni aprobar su propia solicitud: lo garantizan las reglas, no solo la interfaz.
 
-### Permisos por sección (editores)
-En **Usuarios y permisos → Permisos** el administrador asigna a cada editor un nivel por sección (Perfil, Contacto, Experiencia,
-Estudios, Habilidades, Proyectos, Idiomas, Hobbies, Diseño del CV, Bot, Publicar PDF, Mensajes):
+### Permisos por sección (CV de cada usuario)
+En **Usuarios y permisos → Permisos** el administrador decide qué puede hacer cada usuario en **su propio CV**
+(Perfil, Contacto, Experiencia, Estudios, Habilidades, Proyectos, Idiomas, Hobbies, Diseño del CV y Descargar PDF):
 
 | Nivel | Qué permite |
 |---|---|
 | Sin acceso | La sección no aparece |
 | Ver | Solo lectura |
-| Editar | Modificar lo existente, sin agregar ni eliminar elementos |
-| Crear y eliminar | Control total de la sección |
+| Editar | Modificar lo existente, sin agregar ni eliminar elementos *(valor por defecto)* |
+| Crear y eliminar | Control total |
 
 Las reglas de Firestore comprueban cada campo modificado contra estos permisos. Con "Editar", además, la lista no puede cambiar de tamaño.
 
@@ -96,9 +97,10 @@ Las reglas de Firestore comprueban cada campo modificado contra estos permisos. 
 
 | Capa | Cómo se resuelve |
 |---|---|
-| **Autenticación** | Firebase Auth con Google (OAuth 2.0). No guardamos contraseñas, así que no hay nada que hashear ni que se pueda filtrar. Si se activa correo/contraseña, Firebase las guarda con **scrypt**. |
+| **Autenticación** | Firebase Auth: **correo y contraseña** o **Google (OAuth 2.0)**. Las contraseñas nunca pasan por nuestra base de datos: Firebase las guarda con hash **scrypt**. Exigimos mínimo 8 caracteres con letras y números, verificación de correo y recuperación por email. |
 | **Tokens** | Cada petición lleva un **ID token JWT firmado por Google (RS256)** que caduca en 1 h y se renueva solo. Firestore verifica la firma en el servidor. |
-| **Autorización** | [`firestore.rules`](firestore.rules): roles, validación de campos y tamaños, deny-by-default. Hay 45 pruebas automatizadas. |
+| **Autorización** | [`firestore.rules`](firestore.rules): roles, validación de campos y tamaños, deny-by-default. Hay 46 pruebas automatizadas. |
+| **Sesión** | Verificación de correo obligatoria antes de usar la cuenta (segundo paso del registro) y **cierre automático tras 30 min de inactividad** en los paneles. |
 | **Cookies / CSRF** | La sesión no usa cookies (el token vive en IndexedDB y se envía como `Authorization: Bearer`), así que no hay superficie de CSRF. |
 | **CORS** | El sitio es estático y habla directo con las APIs de Google, que gestionan su CORS. La API Flask heredada solo acepta los dominios del portafolio. |
 | **Cabeceras HTTP** | `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y `COOP` ([`firebase.json`](firebase.json)). |
@@ -107,6 +109,8 @@ Las reglas de Firestore comprueban cada campo modificado contra estos permisos. 
 
 **Recomendado en la consola de Google Cloud:**
 - Restringir la API key del navegador a tus dominios (*APIs y servicios → Credenciales*).
+- Para un segundo factor con código (TOTP/SMS) hace falta *Identity Platform* (requiere el plan Blaze).
+- Eliminar usuarios desde el panel borra sus datos en Firestore. Su cuenta de acceso solo se puede borrar desde *Authentication* en la consola (o con el Admin SDK). Para impedir el acceso, usa el rol **Bloqueado**.
 - Activar **App Check** con reCAPTCHA para que solo tu web pueda usar Firestore.
 
 ## 🏗️ Arquitectura
@@ -121,7 +125,6 @@ Visitante ──► Firebase Hosting (Astro estático)
 Usuario ──► Google Sign-In (JWT) ──► Firestore: users/{uid}.role
                                    ├── user    → profiles/{uid} (su CV) + roleRequests/{uid}
                                    ├── premium → + profiles/{uid} público (/perfil)
-                                   ├── editor  → + portfolio, cvPdf, messages
                                    └── owner (UID fijo) → + users, roleRequests, settings
 ```
 
@@ -135,7 +138,7 @@ Usuario ──► Google Sign-In (JWT) ──► Firestore: users/{uid}.role
 ```
 ├── firebase.json            # Hosting + reglas
 ├── firestore.rules          # Modelo de permisos por rol
-├── scripts/test-firestore-rules.mjs   # 45 pruebas de las reglas (emulador)
+├── scripts/test-firestore-rules.mjs   # 46 pruebas de las reglas (emulador)
 ├── frontend/
 │   ├── src/data/portfolio.json        # Contenido inicial (semilla)
 │   ├── src/lib/                       # Firebase, sesión, Markdown, PDF, cerebro del bot
@@ -166,7 +169,7 @@ pnpm dev                    # http://localhost:4321
 
 ### Configuración de Firebase (una sola vez)
 
-1. **Authentication** → *Comenzar* → *Método de acceso* → habilitar **Google** (con correo de asistencia).
+1. **Authentication** → *Método de acceso* → habilitar **Google** y **Correo electrónico/contraseña**.
 2. **Firestore Database** → crear la base de datos en modo producción.
 3. Publicar reglas: `firebase deploy --only firestore:rules`
 4. **Administrador**: pon tu UID en `ownerUid()` de `firestore.rules` y en `PUBLIC_OWNER_UID` del `.env`. Tu UID aparece en *Authentication → Usuarios* después de iniciar sesión una vez. Despliega y listo: el resto de roles se asignan desde **Admin → Usuarios y permisos**.
