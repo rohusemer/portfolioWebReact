@@ -1,3 +1,6 @@
+---
+import AuthButton from './react/AuthButton';
+---
 <header id="main-header" class="bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-md shadow-md fixed w-full z-10 transition-transform duration-300">
     <nav class="container mx-auto flex items-center justify-between p-4">
         <a href="/" class="flex items-center space-x-2">
@@ -18,8 +21,12 @@
             <button class="darkModeToggle ml-4 text-dark-text dark:text-light-text hover:text-primary dark:hover:text-primary">
                 <i class="fas fa-moon"></i>
             </button>
+            <span class="pl-4 ml-1 border-l border-dark-text/15 dark:border-light-text/15 flex items-center">
+                <AuthButton client:idle />
+            </span>
         </div>
-        <div class="md:hidden">
+        <div class="md:hidden flex items-center gap-4">
+            <AuthButton client:media="(max-width: 767px)" />
             <button id="menu-toggle" class="text-dark-text dark:text-light-text">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />

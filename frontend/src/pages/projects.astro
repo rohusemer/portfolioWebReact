@@ -1,8 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Projects from '../components/Projects.astro';
+import PortfolioSections from '../components/react/PortfolioSections';
+import { seedData } from '../lib/firebase';
 ---
 
 <Layout title="Proyectos - Ronny H. Segura">
-    <Projects />
+    <PortfolioSections client:load initialData={seedData} sections={['projects']} />
 </Layout>

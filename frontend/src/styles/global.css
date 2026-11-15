@@ -83,3 +83,33 @@ textarea:focus {
 .jiggle {
     animation: jiggle 0.5s ease-in-out;
 }
+
+/* Páginas sin footer fijo (CV y admin) */
+body.body-flush,
+body.cv-shell {
+    padding-bottom: 0;
+}
+
+/* Robot flotante sobre las tarjetas del timeline */
+.card-mascot {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    color: var(--primary);
+    z-index: 20;
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(-50%, -5px); }
+    50% { transform: translate(-50%, 5px); }
+}
+
+/* Contenido Markdown en la web */
+.md p + p { margin-top: 0.75em; }
+.md ul { list-style: disc; padding-left: 1.25em; text-align: left; }
+.md ol { list-style: decimal; padding-left: 1.25em; text-align: left; }
+.md a { color: var(--primary); text-decoration: underline; }
+.md code { font-size: 0.9em; padding: 0 0.25em; border-radius: 4px; background: rgba(127, 127, 127, 0.15); }

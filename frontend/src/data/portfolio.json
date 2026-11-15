@@ -1,0 +1,179 @@
+{
+  "profile": {
+    "name": "Ronny Segura",
+    "title": "Ingeniero en Ciencias de la Computación",
+    "photoUrl": "/img/profile.jpg",
+    "summary": "Desarrollador de Software  \nCon experiencia en PHP, Laravel, Blade, VueJS, MySQL, PGSQL, MongoDB, Django, Java, JavaScript, programación funcional.",
+    "about": "¡Hola! Soy **Ronny H. Segura**, un desarrollador Full Stack apasionado por transformar ideas en soluciones digitales. Graduado de **ESPOL**, me especializo en crear experiencias de usuario atractivas y arquitecturas de backend robustas.\n\nCon experiencia en tecnologías como React, Vue, Node.js, Spring Boot y Django, he trabajado en diversos proyectos que abarcan todo el espectro del desarrollo.\n\nSiempre estoy buscando nuevos desafíos. Si tienes un proyecto en mente o quieres conectar, ¡no dudes en contactarme!"
+  },
+  "contact": {
+    "phone": "0987139315",
+    "email": "ronhuseg@espol.edu.ec",
+    "linkedin": "https://www.linkedin.com/in/rohusemer",
+    "github": "https://github.com/rohusemer",
+    "location": ""
+  },
+  "skills": [
+    {
+      "id": "sk1",
+      "category": "Frontend",
+      "items": "HTML, CSS, JavaScript, Astro, React, Vue.js, Bootstrap, Tailwind CSS"
+    },
+    {
+      "id": "sk2",
+      "category": "Backend",
+      "items": "Node.js, Express, Python, Django, Java, Spring Boot, PHP, Laravel"
+    },
+    {
+      "id": "sk3",
+      "category": "Bases de Datos",
+      "items": "MongoDB, SQL, PostgreSQL, MySQL"
+    }
+  ],
+  "experience": [
+    {
+      "id": "ex1",
+      "company": "Industria Pesquera Santa Priscila SA",
+      "role": "Desarrollador Full Stack",
+      "start": "09/2022",
+      "end": "actual",
+      "description": "Mejoras y adaptaciones en el ERP de la empresa."
+    },
+    {
+      "id": "ex2",
+      "company": "Industria Pesquera Santa Priscila SA",
+      "role": "Desarrollador web y móvil",
+      "start": "02/2022",
+      "end": "08/2022",
+      "description": "Desarrollo web del sistema de reportería para el área de control de calidad."
+    },
+    {
+      "id": "ex3",
+      "company": "ESPOL – CEPROEM",
+      "role": "Analista de requerimientos y desarrollador",
+      "start": "11/2021",
+      "end": "01/2022",
+      "description": "Recopilar información de las bolsas de empleo nacionales, internacionales y educativas. Analizar los diferentes algoritmos y métodos de AI en busca de adaptaciones a las bolsas de empleo."
+    },
+    {
+      "id": "ex4",
+      "company": "ESPOL",
+      "role": "Ayudante de docencia",
+      "start": "05/2021",
+      "end": "02/2022",
+      "description": "Coordinar y gestionar el contenido práctico de la materia de Análisis de Algoritmos."
+    },
+    {
+      "id": "ex5",
+      "company": "EXPLORA 5.0",
+      "role": "Programador",
+      "start": "01/2021",
+      "end": "04/2021",
+      "description": "Encargado de integrar herramientas LTI de Zoom y TEAMS a la plataforma Explora K5, extraer datos de IDUKAY mediante API y sincronizarlos con Explora."
+    }
+  ],
+  "education": [
+    {
+      "id": "ed1",
+      "title": "Ingeniería en Computación",
+      "kind": "Título",
+      "institution": "Escuela Superior Politécnica del Litoral",
+      "description": "Ingeniero en ciencias computacionales."
+    },
+    {
+      "id": "ed2",
+      "title": "SQL Aplicado a las ciencias de datos",
+      "kind": "Curso",
+      "institution": "IBM",
+      "description": ""
+    },
+    {
+      "id": "ed3",
+      "title": "CCNAv7: Introduction to Networks",
+      "kind": "Curso",
+      "institution": "CISCO",
+      "description": ""
+    },
+    {
+      "id": "ed4",
+      "title": "Introduction to Packet Tracer",
+      "kind": "Curso",
+      "institution": "CISCO",
+      "description": ""
+    },
+    {
+      "id": "ed5",
+      "title": ".NET 5 Esencial",
+      "kind": "Curso",
+      "institution": "LinkedIn Learning",
+      "description": ""
+    }
+  ],
+  "projects": [
+    {
+      "id": "pr1",
+      "name": "Explora K5",
+      "url": "http://www.explora.espol.edu.ec/",
+      "description": "Educación virtual para niños de 4 a 7 años."
+    },
+    {
+      "id": "pr2",
+      "name": "Portafolio Personal",
+      "url": "",
+      "description": "Este mismo portafolio: Astro, React, Tailwind CSS y Firebase, con editor de contenido y generador de CV."
+    }
+  ],
+  "languages": [
+    {
+      "id": "lg1",
+      "name": "Español",
+      "level": "Nativo"
+    },
+    {
+      "id": "lg2",
+      "name": "Inglés",
+      "level": "Medio"
+    }
+  ],
+  "hobbies": [
+    "Practicar fútbol",
+    "Grupo de ayuda social “Jóvenes Solidarios”",
+    "Ir al gimnasio"
+  ],
+  "cv": {
+    "accentColor": "#5b8ec4",
+    "layout": {
+      "sidebar": [
+        "photo",
+        "summary",
+        "contact",
+        "languages",
+        "hobbies"
+      ],
+      "main": [
+        "experience",
+        "education"
+      ]
+    },
+    "titles": {},
+    "custom": []
+  },
+  "bot": {
+    "name": "RoBot",
+    "greeting": "¡Hola! 👋 Soy el asistente de Ronny. Puedo contarte sobre su experiencia, tecnologías y estudios, o ayudarte a contactarlo.",
+    "faqs": [
+      {
+        "id": "fq1",
+        "question": "¿Está disponible para trabajar?",
+        "keywords": "disponible, disponibilidad, contratar, oportunidad, trabajo, vacante, empleo, hire, available",
+        "answer": "Ronny está **abierto a nuevas oportunidades** como desarrollador Full Stack. ¡Déjale un mensaje y te responderá pronto!"
+      },
+      {
+        "id": "fq2",
+        "question": "¿Trabaja de forma remota?",
+        "keywords": "remoto, remote, híbrido, hibrido, presencial, ubicación, ubicacion, donde",
+        "answer": "Sí, Ronny puede trabajar de forma **remota o híbrida**."
+      }
+    ]
+  }
+}

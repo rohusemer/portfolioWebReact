@@ -1,0 +1,25 @@
+---
+import CvViewer from '../components/react/CvViewer';
+import { seedData } from '../lib/firebase';
+import '../styles/global.css';
+import '../styles/cv.css';
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CV - {seedData.profile.name}</title>
+    <meta name="description" content={`Currículum de ${seedData.profile.name}, ${seedData.profile.title}.`} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script is:inline>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    </script>
+</head>
+<body class="cv-shell">
+    <CvViewer client:load initialData={seedData} />
+</body>
+</html>

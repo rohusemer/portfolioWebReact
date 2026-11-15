@@ -1,8 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Experience from '../components/Experience.astro';
+import PortfolioSections from '../components/react/PortfolioSections';
+import { seedData } from '../lib/firebase';
 ---
 
 <Layout title="Experiencia - Ronny H. Segura">
-    <Experience />
+    <PortfolioSections client:load initialData={seedData} sections={['experience']} />
 </Layout>

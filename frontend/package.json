@@ -7,7 +7,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check": "astro check"
   },
   "dependencies": {
     "@astrojs/react": "^4.3.0",
@@ -15,8 +16,17 @@
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "astro": "^5.13.5",
+    "dompurify": "^3.4.18",
+    "firebase": "^13.3.0",
+    "html-to-image": "^1.11.13",
+    "jspdf": "^4.2.1",
+    "marked": "^18.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tsparticles": "^3.5.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^6.0.3"
   }
 }

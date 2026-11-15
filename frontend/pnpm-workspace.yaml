@@ -1,0 +1,7 @@
+allowBuilds:
+  esbuild: true
+  sharp: true
+  '@firebase/util': false
+  '@tsparticles/engine': false
+  protobufjs: false
+  core-js: false

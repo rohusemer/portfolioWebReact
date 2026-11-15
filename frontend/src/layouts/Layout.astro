@@ -1,16 +1,22 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import ContactBot from '../components/react/ContactBot';
+import { seedData } from '../lib/firebase';
 import '../styles/global.css';
 
 const { title, description = "Portafolio de Ronny H. Segura, un apasionado desarrollador Full Stack especializado en la creación de aplicaciones web modernas y eficientes." } = Astro.props;
-const personalImageUrl = '/placeholder.jpg';
+const personalImageUrl = new URL('/img/profile.jpg', Astro.site ?? Astro.url).href;
 ---
 <!DOCTYPE html>
 <html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+        // Aplica el tema antes de pintar para evitar el parpadeo
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    </script>
     <title>{title}</title>
 
     <!-- SEO Meta Tags -->
@@ -40,7 +46,7 @@ const personalImageUrl = '/placeholder.jpg';
     <!-- External Scripts and Fonts -->
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
     <script src="https://cdn.lordicon.com/lordicon.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
         #tsparticles {
@@ -61,10 +67,8 @@ const personalImageUrl = '/placeholder.jpg';
             <slot />
         </main>
 
-        <!-- Contact Mascot -->
-        <div id="contact-mascot" class="fixed right-8 z-50 cursor-pointer">
-            <i class="fas fa-robot text-4xl text-primary"></i>
-        </div>
+        <!-- Bot asistente de contacto -->
+        <ContactBot client:idle initialData={seedData} />
 
         <Footer />
     </div>
@@ -119,16 +123,6 @@ const personalImageUrl = '/placeholder.jpg';
                 });
             }, { threshold: 0.1 });
             sections.forEach(section => observer.observe(section));
-
-            // --- Contact mascot animation ---
-            const contactMascot = document.getElementById('contact-mascot');
-            if(contactMascot) {
-                contactMascot.addEventListener('click', () => {
-                    if (contactMascot.classList.contains('jiggle')) return;
-                    contactMascot.classList.add('jiggle');
-                    setTimeout(() => { contactMascot.classList.remove('jiggle'); }, 500);
-                });
-            }
 
             // --- Header visibility logic ---
             const header = document.getElementById('main-header');
