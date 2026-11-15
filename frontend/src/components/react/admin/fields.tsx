@@ -1,4 +1,14 @@
-import { useRef, type ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
+
+// ---------- Permisos de edición del bloque actual ----------
+// readOnly: solo ver. canCreate: puede agregar/eliminar elementos de listas.
+export interface FieldPerms {
+  readOnly: boolean;
+  canCreate: boolean;
+}
+const PermsCtx = createContext<FieldPerms>({ readOnly: false, canCreate: true });
+export const FieldPermsProvider = PermsCtx.Provider;
+export const useFieldPerms = () => useContext(PermsCtx);
 
 const inputCls =
   'w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm';
@@ -16,10 +26,18 @@ export function Field({
   placeholder?: string;
   type?: string;
 }) {
+  const { readOnly } = useFieldPerms();
   return (
     <label className="block mb-3">
       <span className="block text-xs font-semibold uppercase tracking-wide mb-1 opacity-70">{label}</span>
-      <input type={type} className={inputCls} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+      <input
+        type={type}
+        className={`${inputCls} read-only:opacity-60 read-only:cursor-not-allowed`}
+        value={value}
+        placeholder={placeholder}
+        readOnly={readOnly}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </label>
   );
 }
@@ -45,6 +63,7 @@ export function MarkdownField({
   rows?: number;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
+  const { readOnly } = useFieldPerms();
 
   const apply = ({ before, after = '', placeholder, line }: Wrap) => {
     const ta = ref.current;
@@ -67,7 +86,7 @@ export function MarkdownField({
         <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
           {label} <i className="fab fa-markdown ml-1" title="Admite Markdown" />
         </span>
-        <div className="flex gap-1">
+        <div className={`flex gap-1 ${readOnly ? 'hidden' : ''}`}>
           {TOOLS.map((t) => (
             <button
               key={t.icon}
@@ -81,7 +100,14 @@ export function MarkdownField({
           ))}
         </div>
       </div>
-      <textarea ref={ref} rows={rows} className={`${inputCls} font-mono`} value={value} onChange={(e) => onChange(e.target.value)} />
+      <textarea
+        ref={ref}
+        rows={rows}
+        readOnly={readOnly}
+        className={`${inputCls} font-mono read-only:opacity-60 read-only:cursor-not-allowed`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }
@@ -100,6 +126,7 @@ export function ListEditor<T extends { id: string }>({
   title: (item: T) => string;
   render: (item: T, update: (patch: Partial<T>) => void) => ReactNode;
 }) {
+  const { readOnly, canCreate } = useFieldPerms();
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
     if (j < 0 || j >= items.length) return;
@@ -114,20 +141,27 @@ export function ListEditor<T extends { id: string }>({
         <details key={item.id} className="rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white/60 dark:bg-neutral-900/60">
           <summary className="flex items-center gap-2 cursor-pointer px-3 py-2 select-none">
             <span className="flex-1 font-semibold text-sm truncate">{title(item) || '(sin título)'}</span>
-            <IconBtn icon="fa-arrow-up" title="Subir" onClick={() => move(i, -1)} />
-            <IconBtn icon="fa-arrow-down" title="Bajar" onClick={() => move(i, 1)} />
-            <IconBtn
-              icon="fa-trash"
-              title="Eliminar"
-              danger
-              onClick={() => confirm('¿Eliminar este elemento?') && onChange(items.filter((x) => x.id !== item.id))}
-            />
+            {!readOnly && (
+              <>
+                <IconBtn icon="fa-arrow-up" title="Subir" onClick={() => move(i, -1)} />
+                <IconBtn icon="fa-arrow-down" title="Bajar" onClick={() => move(i, 1)} />
+              </>
+            )}
+            {canCreate && !readOnly && (
+              <IconBtn
+                icon="fa-trash"
+                title="Eliminar"
+                danger
+                onClick={() => confirm('¿Eliminar este elemento?') && onChange(items.filter((x) => x.id !== item.id))}
+              />
+            )}
           </summary>
           <div className="px-3 pb-2 pt-1">
             {render(item, (patch) => onChange(items.map((x) => (x.id === item.id ? { ...x, ...patch } : x))))}
           </div>
         </details>
       ))}
+      {canCreate && !readOnly && (
       <button
         type="button"
         onClick={() => onChange([...items, create()])}
@@ -136,6 +170,7 @@ export function ListEditor<T extends { id: string }>({
         <i className="fas fa-plus mr-2" />
         Agregar
       </button>
+      )}
     </div>
   );
 }
@@ -153,5 +188,83 @@ function IconBtn({ icon, title, onClick, danger }: { icon: string; title: string
     >
       <i className={`fas ${icon}`} />
     </button>
+  );
+}
+
+/**
+ * Foto: URL o subida desde el equipo. La imagen se recorta en cuadrado, se
+ * reduce a 400×400 y se comprime (≈30–60 KB), y se guarda en el propio
+ * documento como data URL. No necesita Firebase Storage (que es de pago).
+ */
+export function ImageField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const { readOnly } = useFieldPerms();
+  const input = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState('');
+
+  const upload = async (file: File) => {
+    setError('');
+    if (!/^image\/(png|jpe?g|webp|gif)$/.test(file.type)) return setError('Formato no permitido. Usa JPG, PNG o WebP.');
+    if (file.size > 10 * 1024 * 1024) return setError('La imagen supera los 10 MB.');
+    try {
+      const bitmap = await createImageBitmap(file);
+      const side = Math.min(bitmap.width, bitmap.height);
+      const size = Math.min(400, side);
+      const canvas = Object.assign(document.createElement('canvas'), { width: size, height: size });
+      const ctx = canvas.getContext('2d')!;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size);
+      onChange(canvas.toDataURL('image/jpeg', 0.85));
+    } catch {
+      setError('No se pudo leer la imagen.');
+    }
+  };
+
+  const isData = value.startsWith('data:');
+  return (
+    <div className="mb-3">
+      <span className="block text-xs font-semibold uppercase tracking-wide mb-1 opacity-70">{label}</span>
+      <div className="flex items-center gap-3">
+        <div className="w-16 h-16 rounded-lg overflow-hidden bg-neutral-200 dark:bg-neutral-800 shrink-0 grid place-items-center">
+          {value ? <img src={value} alt="" className="w-full h-full object-cover" /> : <i className="fas fa-user text-2xl opacity-40" />}
+        </div>
+        <div className="flex-1 min-w-0 space-y-2">
+          <input
+            className={`${inputCls} read-only:opacity-60`}
+            value={isData ? '(imagen subida desde tu equipo)' : value}
+            placeholder="/img/profile.jpg o https://…"
+            readOnly={readOnly || isData}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          {!readOnly && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => input.current?.click()}
+                className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-accent"
+              >
+                <i className="fas fa-upload mr-1" /> Subir imagen
+              </button>
+              {value && (
+                <button type="button" onClick={() => onChange('')} className="px-3 py-1.5 rounded-lg text-xs hover:bg-neutral-200 dark:hover:bg-neutral-800">
+                  Quitar
+                </button>
+              )}
+              <input
+                ref={input}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                hidden
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) upload(f);
+                  e.target.value = '';
+                }}
+              />
+            </div>
+          )}
+          {error && <p className="text-xs text-red-500">{error}</p>}
+        </div>
+      </div>
+    </div>
   );
 }

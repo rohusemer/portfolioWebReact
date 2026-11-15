@@ -1,47 +1,109 @@
 rules_version = '2';
 
-// Modelo de permisos basado en users/{uid}.role:
-//   owner   → todo, incluida la gestión de usuarios y roles
-//   editor  → edita el portafolio principal, publica el PDF y lee mensajes
-//   user    → solo su propio CV (profiles/{uid})
-//   blocked → sin acceso
-// Cualquiera que inicia sesión se registra como "user". El primer "owner" se
-// asigna a mano desde la consola de Firebase (users/{uid} → role: "owner").
+// ============================================================================
+// Modelo de seguridad
+// ----------------------------------------------------------------------------
+// Autenticación: Firebase Auth (Google). Cada petición lleva un ID token JWT
+// firmado por Google (RS256, caduca en 1 h y se renueva solo). Firestore valida
+// la firma en el servidor; `request.auth` solo existe si el token es válido.
+//
+// Autorización (users/{uid}.role):
+//   owner   → administrador principal. FIJO por UID (no se puede asignar ni quitar).
+//   editor  → accede al panel con permisos por sección (ver / editar / crear).
+//   premium → su CV + página pública compartible.
+//   user    → solo su propio CV. Rol por defecto al registrarse.
+//   blocked → sin acceso.
+// Solo el owner asigna roles. Nadie puede cambiar su propio rol.
+// ============================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // UID del administrador principal (también en PUBLIC_OWNER_UID del frontend)
+    function ownerUid() {
+      return 'x8d0hCPRy0bNgwHeub4C7ZB7K2q2';
+    }
 
     function signedIn() {
       return request.auth != null;
     }
 
-    function myRole() {
-      let path = /databases/$(database)/documents/users/$(request.auth.uid);
-      return signedIn() && exists(path) ? get(path).data.role : 'none';
+    function isOwner() {
+      return signedIn() && request.auth.uid == ownerUid();
     }
 
-    function isOwner() {
-      return myRole() == 'owner';
+    function roleOf(uid) {
+      let path = /databases/$(database)/documents/users/$(uid);
+      return uid == ownerUid() ? 'owner' : (exists(path) ? get(path).data.role : 'none');
+    }
+
+    function myRole() {
+      return signedIn() ? roleOf(request.auth.uid) : 'none';
     }
 
     function isStaff() {
       return myRole() in ['owner', 'editor'];
     }
 
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    // ---- Permisos por sección de los editores: users/{uid}.permissions ----
+    //   none | view | edit (modifica, sin agregar/eliminar) | create (todo)
+    function perm(section) {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+        .get('permissions', {}).get(section, 'none');
+    }
+
+    function canAtLeastEdit(section) {
+      return isOwner() || (myRole() == 'editor' && perm(section) in ['edit', 'create']);
+    }
+
+    function canView(section) {
+      return isOwner() || (myRole() == 'editor' && perm(section) in ['view', 'edit', 'create']);
+    }
+
+    // Un campo modificado del portafolio es válido si el editor tiene "create",
+    // o "edit" sin cambiar la cantidad de elementos (no agrega ni elimina).
+    function fieldOk(k, changed) {
+      return !(k in changed)
+        || perm(k) == 'create'
+        || (perm(k) == 'edit'
+          && (!(resource.data[k] is list) || request.resource.data[k].size() == resource.data[k].size()));
+    }
+
+    function editorPortfolioWriteOk() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return myRole() == 'editor'
+        && changed.hasOnly(['profile', 'contact', 'skills', 'experience', 'education', 'projects', 'languages', 'hobbies', 'cv', 'bot', 'updatedAt'])
+        && fieldOk('profile', changed) && fieldOk('contact', changed) && fieldOk('skills', changed)
+        && fieldOk('experience', changed) && fieldOk('education', changed) && fieldOk('projects', changed)
+        && fieldOk('languages', changed) && fieldOk('hobbies', changed) && fieldOk('cv', changed) && fieldOk('bot', changed);
+    }
+
     // ---------- Portafolio principal ----------
     match /portfolio/{docId} {
       allow read: if true;
-      allow write: if isStaff()
-        && request.resource.data.keys().hasAll(['profile', 'experience', 'education']);
+      // El administrador crea/edita todo; un editor solo lo que sus permisos permiten
+      allow create: if isOwner() && request.resource.data.keys().hasAll(['profile', 'experience', 'education']);
+      allow update: if request.resource.data.keys().hasAll(['profile', 'experience', 'education'])
+        && (isOwner() || editorPortfolioWriteOk());
     }
 
     // PDF publicado que entrega el bot
     match /cvPdf/{docId} {
       allow read: if true;
-      allow write: if isStaff();
+      allow write: if canAtLeastEdit('pdf');
       match /chunks/{chunkId} {
         allow read: if true;
-        allow write: if isStaff();
+        allow write: if canAtLeastEdit('pdf');
       }
+    }
+
+    // Configuración pública (planes, precio, enlace de pago)
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isOwner();
     }
 
     // ---------- Usuarios ----------
@@ -49,25 +111,50 @@ service cloud.firestore {
       allow get: if signedIn() && (request.auth.uid == uid || isOwner());
       allow list: if isOwner();
 
-      // Registro: solo el propio usuario, y siempre con rol "user"
+      // Registro automático: solo uno mismo y siempre con rol "user"
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.role == 'user'
         && request.resource.data.keys().hasOnly(['email', 'name', 'photoURL', 'role', 'createdAt', 'lastLogin']);
 
-      // El usuario puede actualizar sus datos básicos, nunca su rol.
-      // El owner puede cambiar el rol de cualquiera.
-      allow update: if (signedIn() && request.auth.uid == uid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email', 'name', 'photoURL', 'lastLogin']))
-        || (isOwner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
-          && request.resource.data.role in ['owner', 'editor', 'user', 'blocked']);
+      // El usuario actualiza sus datos básicos, nunca su rol.
+      // El owner asigna roles (excepto "owner", que es fijo).
+      allow update: if (signedIn() && request.auth.uid == uid && onlyChanges(['email', 'name', 'photoURL', 'lastLogin']))
+        || (isOwner() && uid != ownerUid() && onlyChanges(['role', 'permissions'])
+          && request.resource.data.role in ['editor', 'premium', 'user', 'blocked']
+          && request.resource.data.get('permissions', {}) is map);
+
+      allow delete: if isOwner() && uid != ownerUid();
+    }
+
+    // ---------- Solicitudes de permiso especial ----------
+    match /roleRequests/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isOwner());
+      allow list: if isOwner();
+
+      // El usuario crea/renueva su solicitud, siempre "pendiente" y validada
+      allow create, update: if signedIn() && request.auth.uid == uid && myRole() != 'blocked'
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'name', 'requestedRole', 'message', 'paymentRef', 'status', 'createdAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.requestedRole in ['premium', 'editor']
+        && request.resource.data.message is string && request.resource.data.message.size() <= 1000
+        && request.resource.data.paymentRef is string && request.resource.data.paymentRef.size() <= 200;
+
+      // Solo el owner la aprueba o rechaza
+      allow update: if isOwner() && onlyChanges(['status', 'reviewedAt'])
+        && request.resource.data.status in ['approved', 'rejected'];
 
       allow delete: if isOwner();
     }
 
-    // CV personal de cada usuario
+    // ---------- CV de cada usuario ----------
     match /profiles/{uid} {
-      allow read: if signedIn() && ((request.auth.uid == uid && myRole() != 'blocked') || isOwner());
-      allow write: if signedIn() && request.auth.uid == uid && myRole() in ['owner', 'editor', 'user'];
+      // Lectura: el dueño (no bloqueado), el owner, o cualquiera si es público
+      // y el dueño tiene un rol que permite publicar (premium/editor/owner).
+      allow read: if (signedIn() && request.auth.uid == uid && myRole() != 'blocked')
+        || isOwner()
+        || (resource.data.get('isPublic', false) == true && roleOf(uid) in ['premium', 'editor', 'owner']);
+      allow write: if signedIn() && request.auth.uid == uid && myRole() in ['owner', 'editor', 'premium', 'user'];
     }
 
     // ---------- Mensajes del bot ----------
@@ -80,10 +167,12 @@ service cloud.firestore {
         && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 2000
         && request.resource.data.createdAt is string
         && request.resource.data.read == false;
-      allow read, delete: if isStaff();
-      allow update: if isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow read: if canView('messages');
+      allow delete: if canAtLeastEdit('messages');
+      allow update: if canAtLeastEdit('messages') && onlyChanges(['read']);
     }
 
+    // Todo lo demás, denegado
     match /{document=**} {
       allow read, write: if false;
     }

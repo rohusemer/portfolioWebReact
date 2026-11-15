@@ -3,6 +3,8 @@ import { DEFAULT_BLOCK_TITLES, newId, type BaseBlock, type CvColumn, type CvPdfM
 import { BuilderProvider, blockTitle, hiddenBlockIds, readDragId, startDrag, type BuilderApi } from '../CvDocument';
 import { ScaledCv } from '../CvViewer';
 import Editor, { type Tab } from './Editor';
+import type { PermLevel, PermSection } from '../../../lib/firebase';
+import { FieldPermsProvider } from './fields';
 import { Field, MarkdownField } from './fields';
 
 const BLOCK_ICONS: Record<string, string> = {
@@ -47,9 +49,13 @@ interface Props {
   onChange: (d: PortfolioData) => void;
   /** Tarjeta superior: publicar el PDF del bot (admin) o descargar el CV (usuario) */
   topCard?: ReactNode;
+  /** Sin permiso para cambiar el diseño: no se puede arrastrar, ocultar ni crear bloques */
+  readOnly?: boolean;
+  /** Permisos por sección para el editor del bloque seleccionado */
+  levelOf?: (s: PermSection) => PermLevel;
 }
 
-export default function CvBuilder({ data, onChange, topCard }: Props) {
+export default function CvBuilder({ data, onChange, topCard, readOnly = false, levelOf }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ col: CvColumn; index: number } | null>(null);
@@ -84,6 +90,7 @@ export default function CvBuilder({ data, onChange, topCard }: Props) {
     move,
     hide,
     onOverflow: (o) => o !== overflow && setOverflow(o),
+    canArrange: !readOnly,
   };
 
   const hidden = hiddenBlockIds(data);
@@ -111,7 +118,20 @@ export default function CvBuilder({ data, onChange, topCard }: Props) {
         )}
 
         {selected ? (
-          <Inspector id={selected} data={data} onChange={onChange} onClose={() => setSelected(null)} onHide={() => hide(selected)} />
+          <Inspector
+            id={selected}
+            data={data}
+            onChange={onChange}
+            onClose={() => setSelected(null)}
+            onHide={() => hide(selected)}
+            canArrange={!readOnly}
+            levelOf={levelOf}
+          />
+        ) : readOnly ? (
+          <p className="text-sm opacity-70 p-3 rounded-lg bg-neutral-500/10">
+            <i className="fas fa-eye mr-1" /> No tienes permiso para cambiar el diseño del CV. Haz clic en un bloque para ver o editar su
+            contenido según tus permisos.
+          </p>
         ) : (
           <>
             <h3 className="font-bold mb-1">Bloques disponibles</h3>
@@ -262,12 +282,16 @@ function Inspector({
   onChange,
   onClose,
   onHide,
+  canArrange,
+  levelOf,
 }: {
   id: string;
   data: PortfolioData;
   onChange: (d: PortfolioData) => void;
   onClose: () => void;
   onHide: () => void;
+  canArrange: boolean;
+  levelOf?: (s: PermSection) => PermLevel;
 }) {
   const isCustom = id.startsWith('custom:');
   const custom = isCustom ? data.cv.custom.find((c) => `custom:${c.id}` === id) : undefined;
@@ -298,13 +322,14 @@ function Inspector({
         </button>
         <i className={`fas ${BLOCK_ICONS[id] ?? 'fa-pen-to-square'} text-primary`} />
         <h3 className="flex-1 font-bold">{id === 'header' ? 'Nombre y título' : blockTitle(data, id)}</h3>
-        {id !== 'header' && (
+        {id !== 'header' && canArrange && (
           <button onClick={onHide} title="Ocultar del CV" className="text-xs px-2 py-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-800">
             <i className="fas fa-eye-slash mr-1" /> Ocultar
           </button>
         )}
       </div>
 
+      <FieldPermsProvider value={{ readOnly: !canArrange, canCreate: canArrange }}>
       {canRename && (
         <Field
           label="Título del bloque en el CV"
@@ -314,17 +339,19 @@ function Inspector({
         />
       )}
 
-      {custom ? (
+      {custom && (
         <>
           <Field label="Título" value={custom.title} onChange={(title) => updateCustom({ title })} />
           <MarkdownField label="Contenido" rows={8} value={custom.body} onChange={(body) => updateCustom({ body })} />
-          <button onClick={deleteCustom} className="text-sm text-red-500 hover:underline">
-            <i className="fas fa-trash mr-1" /> Eliminar bloque
-          </button>
+          {canArrange && (
+            <button onClick={deleteCustom} className="text-sm text-red-500 hover:underline">
+              <i className="fas fa-trash mr-1" /> Eliminar bloque
+            </button>
+          )}
         </>
-      ) : (
-        <Editor key={id} data={data} onChange={onChange} initialTab={BLOCK_TAB[id]} only={[BLOCK_TAB[id]]} />
       )}
+      </FieldPermsProvider>
+      {!custom && <Editor key={id} data={data} onChange={onChange} initialTab={BLOCK_TAB[id]} only={[BLOCK_TAB[id]]} levelOf={levelOf} />}
     </div>
   );
 }

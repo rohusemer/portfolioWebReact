@@ -27,6 +27,8 @@ export interface BuilderApi {
   move: (id: string, col: CvColumn, index: number) => void;
   hide: (id: string) => void;
   onOverflow: (overflow: boolean) => void;
+  /** false = solo se puede seleccionar bloques (sin arrastrar ni ocultar) */
+  canArrange: boolean;
 }
 
 const BuilderCtx = createContext<BuilderApi | null>(null);
@@ -120,7 +122,7 @@ function Column({ col, data }: { col: CvColumn; data: PortfolioData }) {
         <div key={id}>
           {line(i)}
           <div
-            draggable
+            draggable={b.canArrange}
             onDragStart={(e) => startDrag(e, id, b)}
             onDragEnd={() => {
               b.setDragging(null);
@@ -139,7 +141,7 @@ function Column({ col, data }: { col: CvColumn; data: PortfolioData }) {
             }}
             className={`cv-block ${b.selected === id ? 'is-selected' : ''} ${b.dragging === id ? 'is-dragging' : ''}`}
           >
-            <div className="cv-block-tools" data-capture-ignore>
+            <div className={`cv-block-tools ${b.canArrange ? '' : '!hidden'}`} data-capture-ignore>
               <span title="Arrastrar">
                 <i className="fas fa-grip-vertical" />
               </span>

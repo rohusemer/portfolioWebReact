@@ -23,7 +23,16 @@ export default function ContactBot({ initialData }: { initialData: PortfolioData
   useEffect(() => {
     loadPortfolioOnce().then((d) => d && setData(d));
     const t = setTimeout(() => setTeaser(true), 4000);
-    return () => clearTimeout(t);
+    // El botón "Contrátame" del navbar abre el bot
+    const openBot = () => {
+      setOpen(true);
+      setTeaser(false);
+    };
+    window.addEventListener('open-bot', openBot);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('open-bot', openBot);
+    };
   }, []);
 
   // Al abrir: saludo, datos de contacto y el CV, apareciendo uno tras otro

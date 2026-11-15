@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'rea
 import type { PortfolioData } from '../../lib/types';
 import { loadPortfolioOnce, savePortfolio } from '../../lib/firebase';
 import { setEditMode, useSession } from '../../lib/session';
-import { isStaff } from '../../lib/firebase';
+import { can, isStaff, type PermLevel, type PermSection } from '../../lib/firebase';
 import type { Tab } from './admin/Editor';
 import Markdown from './Markdown';
 
@@ -20,6 +20,15 @@ interface Props {
 
 const ALL: SectionKey[] = ['about', 'skills', 'experience', 'education', 'projects'];
 
+/** Permiso necesario para editar cada sección del portafolio. */
+const SECTION_PERM: Record<SectionKey, PermSection> = {
+  about: 'profile',
+  skills: 'skills',
+  experience: 'experience',
+  education: 'education',
+  projects: 'projects',
+};
+
 const SECTION_TAB: Record<SectionKey, Tab[]> = {
   about: ['profile', 'contact'],
   skills: ['skills'],
@@ -36,6 +45,8 @@ export default function PortfolioSections({ initialData, sections = ALL, live = 
   const session = useSession();
   const canEdit = live && session.editMode && isStaff(session.role);
   const dirty = canEdit && JSON.stringify(data) !== JSON.stringify(published);
+  const levelOf = (sec: PermSection): PermLevel => (session.role === 'owner' ? 'create' : (session.permissions[sec] ?? 'none'));
+  const mayEdit = (key: SectionKey) => can(session.role, session.permissions, SECTION_PERM[key], 'edit');
 
   useEffect(() => setData(initialData), [initialData]);
 
@@ -63,7 +74,7 @@ export default function PortfolioSections({ initialData, sections = ALL, live = 
   };
 
   const withPencil = (key: SectionKey, node: ReactNode) =>
-    canEdit ? (
+    canEdit && mayEdit(key) ? (
       <div key={key} className={`relative outline-dashed outline-2 outline-offset-[-8px] rounded-xl ${editing === key ? 'outline-primary' : 'outline-primary/30'}`}>
         <button
           onClick={() => setEditing(key)}
@@ -126,7 +137,7 @@ export default function PortfolioSections({ initialData, sections = ALL, live = 
           <div className="p-4">
             <p className="text-xs opacity-70 mb-3">Los cambios se ven al instante en la página. Pulsa Guardar para publicarlos.</p>
             <Suspense fallback={<p>Cargando editor…</p>}>
-              <Editor key={editing} data={data} onChange={setData} initialTab={SECTION_TAB[editing][0]} only={SECTION_TAB[editing]} />
+              <Editor key={editing} data={data} onChange={setData} initialTab={SECTION_TAB[editing][0]} only={SECTION_TAB[editing]} levelOf={levelOf} />
             </Suspense>
           </div>
         </aside>

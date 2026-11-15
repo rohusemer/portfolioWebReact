@@ -32,8 +32,11 @@ que responde a reclutadores y les entrega el CV en PDF.
 | 🧩 **Constructor de CV** | Arrastrar y soltar bloques entre columnas, ocultarlos, renombrarlos, crear bloques propios y cambiar el color. Vista A4 en vivo con aviso si el contenido no cabe en una página. |
 | 📄 **PDF publicado** | Un clic en *"Guardar y publicar PDF"* genera el CV y lo deja listo para que el bot lo entregue. |
 | ✏️ **Edición en vivo** | Al iniciar sesión como admin aparece un botón *Editar* en cada sección del portafolio. |
-| 👥 **Usuarios y roles** | Cualquiera se registra con Google. El propietario ve quién se registró y asigna roles (`owner`, `editor`, `user`, `blocked`). |
-| 🪪 **CV para cada usuario** | Cada usuario registrado tiene su propio espacio en `/mi-cv` para editar su información, armar su CV con el constructor y descargarlo en PDF. |
+| 👥 **Usuarios y permisos** | Cualquiera se registra con Google (rol `user`). Solo el administrador ve quién se registró, asigna roles y da **permisos por sección** (ver / editar / crear) a cada editor. |
+| 🖼️ **Subida de foto** | La foto se sube desde el equipo: se recorta, se reduce a 400×400 y se guarda sin necesidad de Firebase Storage. |
+| 🙋 **Solicitudes de permiso** | Los usuarios piden un permiso especial (Premium o Editor) desde su panel o por correo; el administrador aprueba o rechaza. |
+| 💳 **Plan Premium** | Precio y enlace de pago configurables (PayPal, PayPhone…). Premium da una página pública del CV para compartir. |
+| 🪪 **CV para cada usuario** | Cada usuario tiene su espacio en `/mi-cv` para editar su información, armar su CV y descargarlo en PDF. |
 | 📬 **Bandeja de mensajes** | Los mensajes que dejan los visitantes llegan al panel `/admin` con un contador de no leídos. |
 | 📝 **Markdown en todo** | Las descripciones se escriben en Markdown y el CV se exporta también como `.md` o JSON. |
 
@@ -50,20 +53,61 @@ que responde a reclutadores y les entrega el CV en PDF.
 |---|---|---|
 | `/` | Todos | Portafolio y bot. Con sesión de admin activa: **modo edición**. |
 | `/cv` | Todos | El CV en línea, con descarga en PDF (el publicado), impresión y exportación a Markdown. |
-| `/mi-cv` | Usuarios registrados | Su propio CV: información, diseño con arrastrar y soltar, y descarga en PDF/Markdown. |
-| `/admin` | Owner / Editor | **Constructor de CV**, **Contenido web**, **Mensajes** y, solo para el owner, **Usuarios**. |
+| `/mi-cv` | Usuarios registrados | Su CV (información, diseño, PDF/Markdown) y **Mi cuenta** (solicitar permisos, página pública). |
+| `/perfil?u=<uid>` | Todos | CV público de un usuario Premium, con descarga en PDF. |
+| `/admin` | Administrador / Editor | **Constructor de CV**, **Contenido web**, **Mensajes** y, solo el administrador, **Usuarios y permisos**. |
+
+En el navbar aparece la pestaña **Panel** (administrador/editor) o **Mi CV** (usuarios) solo con la sesión iniciada.
 
 ## 🔐 Roles
 
-| Rol | Portafolio y PDF del bot | Mensajes | Usuarios y roles | Su propio CV (`/mi-cv`) |
-|---|:-:|:-:|:-:|:-:|
-| `owner` | ✅ | ✅ | ✅ (y ver/descargar el CV de cada usuario) | ✅ |
-| `editor` | ✅ | ✅ | — | ✅ |
-| `user` | — | — | — | ✅ |
-| `blocked` | — | — | — | — |
+| Rol | Portafolio y PDF del bot | Mensajes | Usuarios, permisos y planes | Su CV | Página pública |
+|---|:-:|:-:|:-:|:-:|:-:|
+| `owner` (administrador) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `editor` | ✅ | ✅ | — | ✅ | ✅ |
+| `premium` | — | — | — | ✅ | ✅ |
+| `user` *(por defecto)* | — | — | — | ✅ | — |
+| `blocked` | — | — | — | — | — |
 
-Al iniciar sesión por primera vez se crea `users/{uid}` con el rol `user`. Las reglas de Firestore impiden que alguien
-cambie su propio rol: solo un `owner` puede hacerlo.
+- **El administrador es fijo**: su UID está en `firestore.rules` (`ownerUid()`) y en `PUBLIC_OWNER_UID`. No se puede asignar ni quitar desde la app, y aunque alguien escribiera `role: "owner"` en la base de datos, no obtendría ningún poder.
+- Nadie puede cambiar su propio rol ni aprobar su propia solicitud: lo garantizan las reglas, no solo la interfaz.
+
+### Permisos por sección (editores)
+En **Usuarios y permisos → Permisos** el administrador asigna a cada editor un nivel por sección (Perfil, Contacto, Experiencia,
+Estudios, Habilidades, Proyectos, Idiomas, Hobbies, Diseño del CV, Bot, Publicar PDF, Mensajes):
+
+| Nivel | Qué permite |
+|---|---|
+| Sin acceso | La sección no aparece |
+| Ver | Solo lectura |
+| Editar | Modificar lo existente, sin agregar ni eliminar elementos |
+| Crear y eliminar | Control total de la sección |
+
+Las reglas de Firestore comprueban cada campo modificado contra estos permisos. Con "Editar", además, la lista no puede cambiar de tamaño.
+
+### Monetización
+1. En **Admin → Usuarios y permisos → Plan Premium** defines el precio, los beneficios y tu **enlace de pago** (PayPal.me, PayPhone, etc.).
+2. El usuario paga desde **Mi cuenta**. El enlace incluye su ID como `client_reference_id`, y él pega la referencia de la transacción en su solicitud.
+3. Verificas el pago en tu cuenta y pulsas **Aprobar**: el rol cambia al instante.
+
+> La activación **automática** al pagar requiere un webhook del proveedor en Cloud Functions (plan Blaze de Firebase). La estructura ya está lista para añadirlo.
+
+## 🛡️ Seguridad
+
+| Capa | Cómo se resuelve |
+|---|---|
+| **Autenticación** | Firebase Auth con Google (OAuth 2.0). No guardamos contraseñas, así que no hay nada que hashear ni que se pueda filtrar. Si se activa correo/contraseña, Firebase las guarda con **scrypt**. |
+| **Tokens** | Cada petición lleva un **ID token JWT firmado por Google (RS256)** que caduca en 1 h y se renueva solo. Firestore verifica la firma en el servidor. |
+| **Autorización** | [`firestore.rules`](firestore.rules): roles, validación de campos y tamaños, deny-by-default. Hay 45 pruebas automatizadas. |
+| **Cookies / CSRF** | La sesión no usa cookies (el token vive en IndexedDB y se envía como `Authorization: Bearer`), así que no hay superficie de CSRF. |
+| **CORS** | El sitio es estático y habla directo con las APIs de Google, que gestionan su CORS. La API Flask heredada solo acepta los dominios del portafolio. |
+| **Cabeceras HTTP** | `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y `COOP` ([`firebase.json`](firebase.json)). |
+| **XSS** | Todo el Markdown pasa por **DOMPurify**, y la CSP limita los orígenes de scripts. |
+| **Spam** | Validación en las reglas y un campo trampa (honeypot) en el formulario del bot. |
+
+**Recomendado en la consola de Google Cloud:**
+- Restringir la API key del navegador a tus dominios (*APIs y servicios → Credenciales*).
+- Activar **App Check** con reCAPTCHA para que solo tu web pueda usar Firestore.
 
 ## 🏗️ Arquitectura
 
@@ -74,10 +118,11 @@ Visitante ──► Firebase Hosting (Astro estático)
                  ├── Bot ── "dame el CV" ──► Firestore: cvPdf/current/chunks (lectura pública)
                  │      └─ formulario ─────► Firestore: messages            (solo crear)
                  │
-Usuario ──► Google Sign-In ──► Firestore: users/{uid}.role
-                                   ├── user   → profiles/{uid} (su propio CV)
-                                   ├── editor → + portfolio, cvPdf, messages
-                                   └── owner  → + gestión de users y lectura de profiles
+Usuario ──► Google Sign-In (JWT) ──► Firestore: users/{uid}.role
+                                   ├── user    → profiles/{uid} (su CV) + roleRequests/{uid}
+                                   ├── premium → + profiles/{uid} público (/perfil)
+                                   ├── editor  → + portfolio, cvPdf, messages
+                                   └── owner (UID fijo) → + users, roleRequests, settings
 ```
 
 - **Contenido**: un único documento `portfolio/main`. Si no existe, el sitio usa la semilla [`frontend/src/data/portfolio.json`](frontend/src/data/portfolio.json), por lo que nunca se ve vacío.
@@ -90,7 +135,7 @@ Usuario ──► Google Sign-In ──► Firestore: users/{uid}.role
 ```
 ├── firebase.json            # Hosting + reglas
 ├── firestore.rules          # Modelo de permisos por rol
-├── scripts/test-firestore-rules.mjs   # 20 pruebas de las reglas (emulador)
+├── scripts/test-firestore-rules.mjs   # 45 pruebas de las reglas (emulador)
 ├── frontend/
 │   ├── src/data/portfolio.json        # Contenido inicial (semilla)
 │   ├── src/lib/                       # Firebase, sesión, Markdown, PDF, cerebro del bot
@@ -100,7 +145,10 @@ Usuario ──► Google Sign-In ──► Firestore: users/{uid}.role
 │   │   ├── ContactBot.tsx             # Bot asistente
 │   │   ├── AuthButton.tsx             # Login en el header
 │   │   ├── MyCvApp.tsx                # /mi-cv: CV personal de cada usuario
-│   │   └── admin/                     # Panel: constructor, editor, mensajes, usuarios
+│   │   ├── AccountPanel.tsx           # Mi cuenta: solicitudes, pago, página pública
+│   │   ├── PublicProfile.tsx          # /perfil: CV público (premium)
+│   │   ├── NavPanelLink.tsx           # Pestaña "Panel" / "Mi CV" del navbar
+│   │   └── admin/                     # Panel: constructor, editor, mensajes, usuarios, solicitudes, planes
 │   └── src/pages/                     # /, /cv, /admin…
 └── backend/                 # API Flask heredada (no se usa en el despliegue)
 ```
@@ -121,7 +169,7 @@ pnpm dev                    # http://localhost:4321
 1. **Authentication** → *Comenzar* → *Método de acceso* → habilitar **Google** (con correo de asistencia).
 2. **Firestore Database** → crear la base de datos en modo producción.
 3. Publicar reglas: `firebase deploy --only firestore:rules`
-4. **Hazte propietario**: inicia sesión en el sitio (se crea tu documento `users/<tu UID>`). Luego, en la consola de Firestore, cambia su campo `role` a `owner`. Es lo único que se hace a mano; los demás roles se asignan desde **Admin → Usuarios**.
+4. **Administrador**: pon tu UID en `ownerUid()` de `firestore.rules` y en `PUBLIC_OWNER_UID` del `.env`. Tu UID aparece en *Authentication → Usuarios* después de iniciar sesión una vez. Despliega y listo: el resto de roles se asignan desde **Admin → Usuarios y permisos**.
 5. En `/admin` pulsa **Guardar**, y en el *Constructor de CV* pulsa **Guardar y publicar PDF**.
 
 ### Despliegue

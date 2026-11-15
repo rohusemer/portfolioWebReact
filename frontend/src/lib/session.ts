@@ -4,19 +4,20 @@
 
 import { useSyncExternalStore } from 'react';
 import type { User } from 'firebase/auth';
-import { ensureUserProfile, getFirebaseApp, isStaff, type Role } from './firebase';
+import { ensureUserAccess, getFirebaseApp, isStaff, type Permissions, type Role } from './firebase';
 
 export interface SessionState {
   status: 'idle' | 'loading' | 'out' | 'in';
   user: User | null;
   role: Role | null;
+  permissions: Permissions;
   editMode: boolean;
 }
 
 const HINT_KEY = 'pf_session_hint';
 const EDIT_KEY = 'pf_edit_mode';
 
-let state: SessionState = { status: 'idle', user: null, role: null, editMode: false };
+let state: SessionState = { status: 'idle', user: null, role: null, permissions: {}, editMode: false };
 const listeners = new Set<() => void>();
 
 function set(patch: Partial<SessionState>) {
@@ -56,14 +57,15 @@ export function startSession(): Promise<void> {
     onAuthStateChanged(getAuth(app), async (user) => {
       if (!user) {
         storage.set(HINT_KEY, null);
-        return set({ status: 'out', user: null, role: null, editMode: false });
+        return set({ status: 'out', user: null, role: null, permissions: {}, editMode: false });
       }
       storage.set(HINT_KEY, '1');
-      const role = await ensureUserProfile(user).catch((e) => {
+      const access = await ensureUserAccess(user).catch((e) => {
         console.error('No se pudo registrar el usuario:', e);
         return null;
       });
-      set({ status: 'in', user, role, editMode: isStaff(role) && storage.get(EDIT_KEY) === '1' });
+      const role = access?.role ?? null;
+      set({ status: 'in', user, role, permissions: access?.permissions ?? {}, editMode: isStaff(role) && storage.get(EDIT_KEY) === '1' });
     });
   });
   return started;

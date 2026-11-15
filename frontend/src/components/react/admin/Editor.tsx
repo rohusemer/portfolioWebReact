@@ -1,6 +1,25 @@
 import { useState, type ReactNode } from 'react';
 import { newId, type PortfolioData } from '../../../lib/types';
-import { Field, ListEditor, MarkdownField } from './fields';
+import type { PermLevel, PermSection } from '../../../lib/firebase';
+import { Field, FieldPermsProvider, ImageField, ListEditor, MarkdownField, type FieldPerms } from './fields';
+
+/** Sección de permisos que controla cada pestaña. */
+const TAB_SECTION: Record<string, PermSection> = {
+  profile: 'profile',
+  contact: 'contact',
+  experience: 'experience',
+  education: 'education',
+  skills: 'skills',
+  projects: 'projects',
+  extra: 'languages',
+  cv: 'cv',
+  bot: 'bot',
+};
+
+const toFieldPerms = (level: PermLevel): FieldPerms => ({
+  readOnly: level === 'view' || level === 'none',
+  canCreate: level === 'create',
+});
 
 const TABS = [
   ['profile', 'Perfil'],
@@ -21,11 +40,20 @@ interface Props {
   initialTab?: Tab;
   /** limita las pestañas visibles (edición en vivo de una sección) */
   only?: Tab[];
+  /** Nivel de permiso por sección (editores). Sin esta función se permite todo. */
+  levelOf?: (section: PermSection) => PermLevel;
 }
 
-export default function Editor({ data, onChange, initialTab = 'profile', only }: Props) {
-  const [tab, setTab] = useState<Tab>(initialTab);
-  const tabs = only ? TABS.filter(([k]) => only.includes(k)) : TABS;
+export default function Editor({ data, onChange, initialTab = 'profile', only, levelOf = () => 'create' }: Props) {
+  const tabLevel = (k: string): PermLevel => {
+    if (k === 'extra') {
+      const a = levelOf('languages'), b = levelOf('hobbies');
+      return a === 'none' ? b : b === 'none' ? a : a; // visible si alguna de las dos lo es
+    }
+    return levelOf(TAB_SECTION[k]);
+  };
+  const tabs = TABS.filter(([k]) => (!only || only.includes(k)) && tabLevel(k) !== 'none');
+  const [tab, setTab] = useState<Tab>(tabs.some(([k]) => k === initialTab) ? initialTab : (tabs[0]?.[0] ?? initialTab));
   const set = <K extends keyof PortfolioData>(key: K, value: PortfolioData[K]) => onChange({ ...data, [key]: value });
 
   return (
@@ -40,20 +68,29 @@ export default function Editor({ data, onChange, initialTab = 'profile', only }:
             }`}
           >
             {label}
+            {tabLevel(key) === 'view' && <i className="fas fa-eye ml-1 opacity-70" title="Solo lectura" />}
           </button>
         ))}
       </nav>
+
+      {tabs.length === 0 && <p className="text-sm opacity-70">No tienes permisos sobre ninguna sección. Pídeselos al administrador.</p>}
+      {tabs.length > 0 && tabLevel(tab) === 'view' && (
+        <p className="text-xs mb-3 p-2 rounded bg-neutral-500/10">
+          <i className="fas fa-eye mr-1" /> Solo lectura: no tienes permiso para modificar esta sección.
+        </p>
+      )}
+      {tabs.length > 0 && tabLevel(tab) === 'edit' && TAB_SECTION[tab] !== 'profile' && TAB_SECTION[tab] !== 'contact' && (
+        <p className="text-xs mb-3 p-2 rounded bg-neutral-500/10">
+          <i className="fas fa-pen mr-1" /> Puedes editar lo existente, pero no agregar ni eliminar elementos.
+        </p>
+      )}
+      <FieldPermsProvider value={toFieldPerms(tabs.length ? (tab === 'extra' ? levelOf('languages') : tabLevel(tab)) : 'none')}>
 
       {tab === 'profile' && (
         <>
           <Field label="Nombre" value={data.profile.name} onChange={(name) => set('profile', { ...data.profile, name })} />
           <Field label="Título profesional" value={data.profile.title} onChange={(title) => set('profile', { ...data.profile, title })} />
-          <Field
-            label="URL de la foto"
-            value={data.profile.photoUrl}
-            placeholder="/img/profile.jpg o https://…"
-            onChange={(photoUrl) => set('profile', { ...data.profile, photoUrl })}
-          />
+          <ImageField label="Foto" value={data.profile.photoUrl} onChange={(photoUrl) => set('profile', { ...data.profile, photoUrl })} />
           <MarkdownField
             label="Perfil corto (CV)"
             rows={5}
@@ -168,12 +205,14 @@ export default function Editor({ data, onChange, initialTab = 'profile', only }:
             )}
           />
           <h3 className="font-bold mt-6 mb-2">Hobbies</h3>
+          <FieldPermsProvider value={toFieldPerms(levelOf('hobbies'))}>
           <MarkdownField
             label="Uno por línea"
             rows={4}
             value={data.hobbies.join('\n')}
             onChange={(v) => set('hobbies', v.split('\n'))}
           />
+          </FieldPermsProvider>
         </>
       )}
 
@@ -211,6 +250,7 @@ export default function Editor({ data, onChange, initialTab = 'profile', only }:
           El diseño del CV (orden de bloques, columnas, títulos y color) se arma en la vista <strong>Constructor de CV</strong>.
         </Hint>
       )}
+      </FieldPermsProvider>
     </div>
   );
 }

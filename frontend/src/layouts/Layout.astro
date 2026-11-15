@@ -124,40 +124,6 @@ const personalImageUrl = new URL('/img/profile.jpg', Astro.site ?? Astro.url).hr
             }, { threshold: 0.1 });
             sections.forEach(section => observer.observe(section));
 
-            // --- Header visibility logic ---
-            const header = document.getElementById('main-header');
-            if (header) {
-                const headerTriggerZone = 50; // px from top
-                let isHeaderVisible = true;
-
-                // Handle visibility on mouse move
-                document.addEventListener('mousemove', (e) => {
-                    if (e.clientY < headerTriggerZone) {
-                        if (!isHeaderVisible) {
-                            header.style.transform = 'translateY(0)';
-                            isHeaderVisible = true;
-                        }
-                    } else {
-                        // Only hide if we are not at the top of the page
-                        if (isHeaderVisible && window.scrollY > 0) {
-                            header.style.transform = 'translateY(-100%)';
-                            isHeaderVisible = false;
-                        }
-                    }
-                });
-
-                // Handle visibility on scroll
-                window.addEventListener('scroll', () => {
-                    const scrollTop = window.scrollY;
-                    if (scrollTop > 0 && isHeaderVisible) {
-                        header.style.transform = 'translateY(-100%)';
-                        isHeaderVisible = false;
-                    } else if (scrollTop === 0 && !isHeaderVisible) {
-                        header.style.transform = 'translateY(0)';
-                        isHeaderVisible = true;
-                    }
-                });
-            }
         });
     </script>
 </body>

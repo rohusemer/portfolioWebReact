@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
-import { fetchCvPdfMeta, fetchPortfolio, ensureUserProfile, isStaff, listContactMessages, publishCvPdf, firebaseConfigured, getFirebaseApp, savePortfolio, seedData, withDefaults, type Role } from '../../../lib/firebase';
+import { fetchCvPdfMeta, fetchPortfolio, ensureUserAccess, isStaff, can, type Permissions, type PermLevel, type PermSection, listContactMessages, publishCvPdf, firebaseConfigured, getFirebaseApp, savePortfolio, seedData, withDefaults, type Role } from '../../../lib/firebase';
 import type { CvPdfMeta, PortfolioData } from '../../../lib/types';
 import { cvFileBase, downloadFile, toMarkdown } from '../../../lib/cvMarkdown';
 import PortfolioSections from '../PortfolioSections';
@@ -11,7 +11,7 @@ import Messages from './Messages';
 import Users from './Users';
 import { alertAuthError } from '../../../lib/authErrors';
 
-type AuthState = { status: 'loading' } | { status: 'out' } | { status: 'in'; user: User; role: Role | null };
+type AuthState = { status: 'loading' } | { status: 'out' } | { status: 'in'; user: User; role: Role | null; permissions: Permissions };
 
 export default function AdminApp() {
   const [auth, setAuth] = useState<AuthState>({ status: 'loading' });
@@ -21,7 +21,8 @@ export default function AdminApp() {
     if (!app) return;
     return onAuthStateChanged(getAuth(app), async (user) => {
       if (!user) return setAuth({ status: 'out' });
-      setAuth({ status: 'in', user, role: await ensureUserProfile(user).catch(() => null) });
+      const access = await ensureUserAccess(user).catch(() => null);
+      setAuth({ status: 'in', user, role: access?.role ?? null, permissions: access?.permissions ?? {} });
     });
   }, []);
 
@@ -84,12 +85,18 @@ export default function AdminApp() {
     );
   }
 
-  return <Dashboard user={auth.user} role={auth.role!} />;
+  return <Dashboard user={auth.user} role={auth.role!} permissions={auth.permissions} />;
 }
 
 type View = 'cv' | 'content' | 'messages' | 'users';
 
-function Dashboard({ user, role }: { user: User; role: Role }) {
+function Dashboard({ user, role, permissions }: { user: User; role: Role; permissions: Permissions }) {
+  // Permisos efectivos (el administrador puede todo)
+  const levelOf = (s: PermSection): PermLevel => (role === 'owner' ? 'create' : (permissions[s] ?? 'none'));
+  const may = (s: PermSection, need: PermLevel) => can(role, permissions, s, need);
+  const contentSections: PermSection[] = ['profile', 'contact', 'experience', 'education', 'skills', 'projects', 'languages', 'hobbies', 'bot'];
+  const leaving = useRef(false);
+
   const [data, setData] = useState<PortfolioData | null>(null);
   const [saved, setSaved] = useState<string>('');
   const [isNew, setIsNew] = useState(false);
@@ -101,7 +108,7 @@ function Dashboard({ user, role }: { user: User; role: Role }) {
   const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
-    listContactMessages()
+    if (may('messages', 'view')) listContactMessages()
       .then((m) => setUnread(m.filter((x) => !x.read).length))
       .catch(() => {});
     fetchCvPdfMeta().then(setPdfMeta);
@@ -187,7 +194,7 @@ function Dashboard({ user, role }: { user: User; role: Role }) {
       }
     };
     const onLeave = (e: BeforeUnloadEvent) => {
-      if (dirty) e.preventDefault();
+      if (dirty && !leaving.current) e.preventDefault();
     };
     window.addEventListener('keydown', onKey);
     window.addEventListener('beforeunload', onLeave);
@@ -209,25 +216,40 @@ function Dashboard({ user, role }: { user: User; role: Role }) {
   if (!data) return <Centered>{status?.msg ?? 'Cargando…'}</Centered>;
 
   const tabs: { key: View; icon: string; label: string; badge?: number }[] = [
-    { key: 'cv', icon: 'fa-table-columns', label: 'Constructor de CV' },
-    { key: 'content', icon: 'fa-pen', label: 'Contenido web' },
-    { key: 'messages', icon: 'fa-inbox', label: 'Mensajes', badge: unread },
-    ...(role === 'owner' ? [{ key: 'users' as View, icon: 'fa-users', label: 'Usuarios' }] : []),
+    ...(may('cv', 'view') ? [{ key: 'cv' as View, icon: 'fa-table-columns', label: 'Constructor de CV' }] : []),
+    ...(contentSections.some((s) => may(s, 'view')) ? [{ key: 'content' as View, icon: 'fa-pen', label: 'Contenido web' }] : []),
+    ...(may('messages', 'view') ? [{ key: 'messages' as View, icon: 'fa-inbox', label: 'Mensajes', badge: unread }] : []),
+    ...(role === 'owner' ? [{ key: 'users' as View, icon: 'fa-users', label: 'Usuarios y permisos' }] : []),
   ];
+  const activeView: View | undefined = tabs.some((t) => t.key === view) ? view : tabs[0]?.key;
+
+  /** Vuelve al sitio público sin guardar (pregunta si hay cambios pendientes). */
+  const exitToSite = () => {
+    if (dirty && !confirm('Tienes cambios sin guardar. ¿Salir al sitio sin guardarlos?')) return;
+    leaving.current = true;
+    window.location.href = '/';
+  };
 
   return (
     <div className="h-screen flex flex-col">
       <header className="sticky top-0 z-30 flex flex-wrap items-center gap-2 px-4 py-2 border-b border-neutral-300 dark:border-neutral-800 bg-light-bg/90 dark:bg-dark-bg/90 backdrop-blur">
-        <a href="/" className="font-bold text-primary mr-2" title="Ver el sitio">
-          <i className="fas fa-pen-nib mr-1" /> Admin
-        </a>
+        <button
+          onClick={exitToSite}
+          title="Salir del modo administrador y volver al sitio (sin guardar)"
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-neutral-300 dark:border-neutral-700 hover:border-primary hover:text-primary"
+        >
+          <i className="fas fa-arrow-left mr-1" /> Salir al sitio
+        </button>
+        <span className="font-bold text-primary mr-2">
+          <i className="fas fa-gauge-high mr-1" /> Panel
+        </span>
         <nav className="flex gap-1">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setView(t.key)}
               className={`relative px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                view === t.key ? 'bg-primary text-white' : 'bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700'
+                activeView === t.key ? 'bg-primary text-white' : 'bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700'
               }`}
             >
               <i className={`fas ${t.icon} mr-1`} />
@@ -281,20 +303,38 @@ function Dashboard({ user, role }: { user: User; role: Role }) {
         </div>
       )}
 
-      {view === 'cv' && (
+      {activeView === 'cv' && (
         <CvBuilder
           data={data}
           onChange={setData}
+          readOnly={!may('cv', 'edit')}
+          levelOf={levelOf}
           topCard={
-            <PublishCard pdfMeta={pdfMeta} updatedAt={data.updatedAt} publishing={publishing} onPublish={publishPdf} onPreviewPdf={previewPdf} />
+            <>
+              {may('pdf', 'edit') && (
+                <PublishCard pdfMeta={pdfMeta} updatedAt={data.updatedAt} publishing={publishing} onPublish={publishPdf} onPreviewPdf={previewPdf} />
+              )}
+              {role === 'owner' && (
+                <button
+                  onClick={() => {
+                    if (!confirm('¿Reemplazar tu experiencia, estudios, perfil y contacto por los datos de tu CV original (PDF)? Se conservan el diseño y el bot. No se guarda hasta que pulses Guardar.')) return;
+                    setData({ ...structuredClone(seedData), cv: data.cv, bot: data.bot, updatedAt: data.updatedAt });
+                    setStatus({ kind: 'ok', msg: 'Datos del CV original cargados. Revisa y pulsa Guardar.' });
+                  }}
+                  className="w-full mb-4 text-xs py-2 rounded-lg border border-dashed border-neutral-400 hover:border-primary hover:text-primary"
+                >
+                  <i className="fas fa-file-import mr-1" /> Cargar datos de mi CV original (PDF)
+                </button>
+              )}
+            </>
           }
         />
       )}
 
-      {view === 'content' && (
+      {activeView === 'content' && (
         <div className="flex-1 grid lg:grid-cols-[minmax(380px,520px)_1fr] min-h-0">
           <section className="p-4 overflow-y-auto lg:h-[calc(100vh-49px)] border-r border-neutral-300 dark:border-neutral-800">
-            <Editor data={data} onChange={setData} />
+            <Editor data={data} onChange={setData} levelOf={levelOf} only={['profile', 'contact', 'experience', 'education', 'skills', 'projects', 'extra', 'bot']} />
           </section>
           <section className="p-4 overflow-y-auto lg:h-[calc(100vh-49px)] bg-neutral-200/60 dark:bg-neutral-900/60">
             <p className="text-center text-xs font-semibold mb-3 opacity-70">Vista previa de la web</p>
@@ -305,13 +345,20 @@ function Dashboard({ user, role }: { user: User; role: Role }) {
         </div>
       )}
 
-      {view === 'users' && role === 'owner' && (
+      {activeView === 'users' && role === 'owner' && (
         <div className="flex-1 p-4 overflow-y-auto">
           <Users currentUid={user.uid} />
         </div>
       )}
 
-      {view === 'messages' && (
+      {!activeView && (
+        <Centered>
+          <i className="fas fa-lock text-3xl opacity-50 mb-3" />
+          <p className="text-sm">Todavía no tienes permisos sobre ninguna sección. Pídeselos al administrador.</p>
+        </Centered>
+      )}
+
+      {activeView === 'messages' && (
         <div className="flex-1 p-4 overflow-y-auto">
           <Messages onUnread={setUnread} />
         </div>

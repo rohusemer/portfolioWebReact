@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { User } from 'firebase/auth';
-import { blankProfile, fetchProfile, firebaseConfigured, isStaff, ROLE_LABELS, saveProfile } from '../../lib/firebase';
+import { blankProfile, fetchProfile, firebaseConfigured, isStaff, saveProfile, type Role } from '../../lib/firebase';
 import { signIn, signOutUser, startSession, useSession } from '../../lib/session';
 import { alertAuthError } from '../../lib/authErrors';
 import { downloadCvPdf, previewCvPdf } from '../../lib/cvPdf';
@@ -8,6 +8,7 @@ import { cvFileBase, downloadFile, toMarkdown } from '../../lib/cvMarkdown';
 import type { PortfolioData } from '../../lib/types';
 import CvBuilder from './admin/CvBuilder';
 import Editor from './admin/Editor';
+import AccountPanel from './AccountPanel';
 
 /** Página /mi-cv: cada usuario registrado arma, guarda y descarga su propio CV. */
 export default function MyCvApp() {
@@ -66,14 +67,15 @@ export default function MyCvApp() {
     );
   }
 
-  return <PersonalDashboard user={session.user} roleLabel={ROLE_LABELS[session.role]} staff={isStaff(session.role)} />;
+  return <PersonalDashboard user={session.user} role={session.role} />;
 }
 
-function PersonalDashboard({ user, roleLabel, staff }: { user: User; roleLabel: string; staff: boolean }) {
+function PersonalDashboard({ user, role }: { user: User; role: Role }) {
+  const staff = isStaff(role);
   const [data, setData] = useState<PortfolioData | null>(null);
   const [saved, setSaved] = useState('');
   const [isNew, setIsNew] = useState(false);
-  const [view, setView] = useState<'cv' | 'info'>('cv');
+  const [view, setView] = useState<'cv' | 'info' | 'account'>('cv');
   const [status, setStatus] = useState<{ kind: 'ok' | 'err' | 'busy'; msg: string } | null>(null);
 
   useEffect(() => {
@@ -89,6 +91,12 @@ function PersonalDashboard({ user, roleLabel, staff }: { user: User; roleLabel: 
   }, [user.uid]);
 
   const dirty = data !== null && (isNew || JSON.stringify(data) !== saved);
+  const leaving = useRef(false);
+  const exitToSite = () => {
+    if (dirty && !confirm('Tienes cambios sin guardar. ¿Salir al sitio sin guardarlos?')) return;
+    leaving.current = true;
+    window.location.href = '/';
+  };
 
   const save = useCallback(async () => {
     if (!data) return;
@@ -112,7 +120,7 @@ function PersonalDashboard({ user, roleLabel, staff }: { user: User; roleLabel: 
         save();
       }
     };
-    const onLeave = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
+    const onLeave = (e: BeforeUnloadEvent) => dirty && !leaving.current && e.preventDefault();
     window.addEventListener('keydown', onKey);
     window.addEventListener('beforeunload', onLeave);
     return () => {
@@ -137,14 +145,22 @@ function PersonalDashboard({ user, roleLabel, staff }: { user: User; roleLabel: 
   return (
     <div className="h-screen flex flex-col">
       <header className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-neutral-300 dark:border-neutral-800 bg-light-bg/90 dark:bg-dark-bg/90 backdrop-blur">
-        <a href="/" className="font-bold text-primary mr-2" title="Volver al portafolio">
+        <button
+          onClick={exitToSite}
+          title="Volver al sitio (sin guardar)"
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-neutral-300 dark:border-neutral-700 hover:border-primary hover:text-primary"
+        >
+          <i className="fas fa-arrow-left mr-1" /> Salir al sitio
+        </button>
+        <span className="font-bold text-primary mr-2">
           <i className="fas fa-id-card mr-1" /> Mi CV
-        </a>
+        </span>
         <nav className="flex gap-1">
           {(
             [
               ['cv', 'fa-table-columns', 'Diseño del CV'],
               ['info', 'fa-user-pen', 'Mi información'],
+              ['account', 'fa-user-gear', 'Mi cuenta'],
             ] as const
           ).map(([key, icon, label]) => (
             <button
@@ -176,7 +192,7 @@ function PersonalDashboard({ user, roleLabel, staff }: { user: User; roleLabel: 
         >
           <i className="fas fa-cloud-arrow-up mr-1" /> Guardar
         </button>
-        <span className="text-xs opacity-60 hidden xl:inline" title={`Rol: ${roleLabel}`}>
+        <span className="text-xs opacity-60 hidden xl:inline" title={`Rol: ${role}`}>
           {user.email}
         </span>
         <button onClick={() => signOutUser()} title="Cerrar sesión" className="text-sm px-2">
@@ -233,6 +249,25 @@ function PersonalDashboard({ user, roleLabel, staff }: { user: User; roleLabel: 
             </div>
           }
         />
+      ) : view === 'account' ? (
+        <div className="flex-1 overflow-y-auto p-4">
+          <AccountPanel
+            user={user}
+            role={role}
+            data={data}
+            onTogglePublic={async (isPublic) => {
+              const next = { ...data, isPublic, updatedAt: new Date().toISOString() };
+              try {
+                await saveProfile(user.uid, next);
+                setData(next);
+                setSaved(JSON.stringify(next));
+                setIsNew(false);
+              } catch (e) {
+                setStatus({ kind: 'err', msg: `No se pudo cambiar la visibilidad: ${(e as Error).message}` });
+              }
+            }}
+          />
+        </div>
       ) : (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="max-w-2xl mx-auto">

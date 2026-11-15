@@ -151,6 +151,8 @@ export interface PortfolioData {
   hobbies: string[];
   cv: CvSettings;
   bot: BotSettings;
+  /** CV personal: visible en /perfil?u=<uid> (solo premium/editor/owner) */
+  isPublic?: boolean;
   updatedAt?: string;
 }
 
