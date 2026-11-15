@@ -1,0 +1,105 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { seedData } from '../lib/firebase';
+
+const updated = '15 de noviembre de 2026';
+const email = seedData.contact.email;
+---
+
+<Layout title="Privacidad y términos - Sure Developments" description="Política de privacidad y términos de uso de la plataforma de CV de Sure Developments.">
+  <article class="container mx-auto max-w-3xl px-4 pt-28 pb-16 privacy">
+    <h1>Política de privacidad y términos de uso</h1>
+    <p class="meta">Última actualización: {updated}</p>
+
+    <p>
+      Esta plataforma (el portafolio de Ronny Segura y el servicio para crear CV) trata datos personales de acuerdo con la
+      <strong>Ley Orgánica de Protección de Datos Personales del Ecuador (LOPDP)</strong>. Aquí explicamos qué datos usamos, para qué y
+      cómo puedes ejercer tus derechos.
+    </p>
+
+    <h2>1. Responsable del tratamiento</h2>
+    <p>Ronny Segura (Sure Developments). Contacto: <a href={`mailto:${email}`}>{email}</a>.</p>
+
+    <h2>2. Qué datos tratamos</h2>
+    <ul>
+      <li><strong>Cuenta:</strong> nombre, correo electrónico, nombre de usuario, foto de perfil y método de acceso (correo o Google).</li>
+      <li><strong>Contenido de tu CV y sitio:</strong> la información profesional que tú escribes (experiencia, estudios, contacto, etc.).</li>
+      <li><strong>Mensajes de contacto y sugerencias:</strong> lo que envías a través del asistente (bot). En las sugerencias, nombre y correo son opcionales.</li>
+      <li><strong>Solicitudes de permisos:</strong> el mensaje y, si aplica, la referencia de pago que adjuntas.</li>
+      <li><strong>Datos técnicos mínimos:</strong> fecha de registro y de último acceso.</li>
+    </ul>
+    <p>
+      <strong>Contraseñas:</strong> nunca las vemos ni las guardamos en nuestra base de datos. Las gestiona Google Firebase Authentication,
+      que las almacena cifradas con hash (scrypt).
+    </p>
+
+    <h2>3. Para qué los usamos</h2>
+    <ul>
+      <li>Crear y mantener tu cuenta, y permitirte armar, guardar y descargar tu CV.</li>
+      <li>Publicar tu CV o sitio web <em>solo si tú lo activas</em> (plan Premium).</li>
+      <li>Responder mensajes de contacto y gestionar solicitudes de permisos.</li>
+      <li>Proteger la plataforma (verificación de correo, control de accesos y prevención de abusos).</li>
+    </ul>
+    <p>No vendemos ni cedemos tus datos a terceros, ni los usamos para publicidad.</p>
+
+    <h2>4. Base legal</h2>
+    <p>
+      Tu <strong>consentimiento</strong>, que otorgas al registrarte o al enviar un mensaje, y la <strong>ejecución del servicio</strong> que
+      solicitas. Puedes retirar tu consentimiento en cualquier momento eliminando tu cuenta.
+    </p>
+
+    <h2>5. Dónde se guardan</h2>
+    <p>
+      Los datos se alojan en <strong>Google Firebase</strong> (Firestore y Authentication), cuyos servidores pueden estar fuera del Ecuador.
+      Google aplica medidas de seguridad y cifrado en tránsito y en reposo. Al usar la plataforma aceptas esta transferencia internacional.
+    </p>
+    <p>
+      Para avisar al administrador de nuevos mensajes, sugerencias y solicitudes, su contenido se reenvía por correo mediante
+      <strong>FormSubmit</strong> (formsubmit.co), que actúa solo como servicio de envío.
+    </p>
+
+    <h2>6. Cuánto tiempo</h2>
+    <p>Mientras tu cuenta esté activa. Si la eliminas, borramos tu ficha, tu CV, tu nombre de usuario y tus solicitudes de inmediato.</p>
+
+    <h2>7. Tus derechos</h2>
+    <p>Tienes derecho de <strong>acceso, rectificación, eliminación, oposición y portabilidad</strong> de tus datos:</p>
+    <ul>
+      <li><strong>Acceso y rectificación:</strong> desde tu panel <a href="/mi-cv">Mi CV</a> ves y editas tu información.</li>
+      <li><strong>Portabilidad:</strong> descarga tu CV en PDF o Markdown cuando quieras.</li>
+      <li><strong>Eliminación:</strong> en <em>Mi CV → Mi cuenta → Eliminar mi cuenta</em> borras tu cuenta y todos tus datos.</li>
+      <li>Para cualquier otra solicitud escribe a <a href={`mailto:${email}`}>{email}</a>. Respondemos en un plazo máximo de 15 días.</li>
+    </ul>
+
+    <h2>8. Cookies y almacenamiento local</h2>
+    <p>
+      No usamos cookies de seguimiento ni publicidad. Solo guardamos en tu navegador preferencias (tema claro/oscuro) y el estado de tu
+      sesión, necesarios para que el sitio funcione.
+    </p>
+
+    <h2>9. Seguridad</h2>
+    <p>
+      Acceso con verificación de correo, contraseñas seguras, cierre de sesión por inactividad, reglas de seguridad en el servidor que
+      limitan quién puede leer o modificar cada dato, y conexiones cifradas (HTTPS).
+    </p>
+
+    <h2>10. Términos de uso</h2>
+    <ul>
+      <li>Eres responsable de que la información de tu CV sea verídica y de no publicar contenido ilegal u ofensivo.</li>
+      <li>El administrador puede restringir permisos, bloquear o eliminar cuentas que incumplan estos términos.</li>
+      <li>El plan Premium se activa tras verificar el pago; las condiciones y el precio se muestran antes de pagar.</li>
+      <li>El servicio se ofrece “tal cual”; haremos lo posible por mantenerlo disponible y seguro.</li>
+    </ul>
+
+    <h2>11. Cambios</h2>
+    <p>Si cambiamos esta política, actualizaremos la fecha de arriba y, si el cambio es importante, te lo avisaremos.</p>
+  </article>
+</Layout>
+
+<style>
+  .privacy h1 { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 0.25rem; line-height: 1.2; }
+  .privacy .meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+  .privacy h2 { font-size: 1.2rem; font-weight: 700; margin: 2rem 0 0.5rem; }
+  .privacy p { margin-bottom: 0.75rem; line-height: 1.7; }
+  .privacy ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; line-height: 1.7; }
+  .privacy a { color: var(--primary); text-decoration: underline; }
+</style>

@@ -1,9 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import PortfolioSections from '../components/react/PortfolioSections';
-import { seedData } from '../lib/firebase';
+import { getBuildData } from '../lib/buildData';
+
+const data = await getBuildData();
 ---
 
-<Layout title={`${seedData.profile.name} - ${seedData.profile.title}`}>
-    <PortfolioSections client:load initialData={seedData} />
+<Layout title={`${data.profile.name} - ${data.profile.title}`}>
+    <PortfolioSections client:load initialData={data} />
 </Layout>

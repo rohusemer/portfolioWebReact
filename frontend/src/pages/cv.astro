@@ -1,6 +1,8 @@
 ---
 import CvViewer from '../components/react/CvViewer';
-import { seedData } from '../lib/firebase';
+import { getBuildData } from '../lib/buildData';
+
+const seedData = await getBuildData();
 import '../styles/global.css';
 import '../styles/cv.css';
 ---

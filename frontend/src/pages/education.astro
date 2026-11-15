@@ -1,9 +1,0 @@
----
-import Layout from '../layouts/Layout.astro';
-import PortfolioSections from '../components/react/PortfolioSections';
-import { seedData } from '../lib/firebase';
----
-
-<Layout title="Educación - Ronny H. Segura">
-    <PortfolioSections client:load initialData={seedData} sections={['education']} />
-</Layout>

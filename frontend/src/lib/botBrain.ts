@@ -4,7 +4,7 @@
 import type { PortfolioData } from './types';
 import type { GithubInfo, GithubRepo } from './github';
 
-export type BotAction = 'contact' | 'cv';
+export type BotAction = 'contact' | 'cv' | 'suggest';
 export interface BotReply {
   text: string; // markdown
   action?: BotAction;
@@ -18,6 +18,7 @@ export const QUICK_REPLIES = [
   { label: '💻 GitHub', text: '¿Qué tiene en GitHub?' },
   { label: '🎓 Estudios', text: 'Estudios' },
   { label: '✉️ Contactarlo', text: 'Quiero contactarlo' },
+  { label: '💡 Sugerencia', text: 'Quiero dejar una sugerencia' },
 ];
 
 const norm = (s: string) =>
@@ -142,6 +143,12 @@ export function reply(input: string, d: PortfolioData, gh?: GithubInfo | null): 
     }
   }
 
+  if (has(text, ['sugerencia', 'sugerir', 'sugiero', 'idea', 'feedback', 'opinion', 'comentario', 'mejora', 'recomendacion', 'buzon'])) {
+    return {
+      text: `¡Gracias por querer ayudar! 💡 Cuéntame tu sugerencia sobre el sitio, el CV o cualquier idea. Le llegará directamente a ${name}. Nombre y correo son opcionales.`,
+      action: 'suggest',
+    };
+  }
   if (has(text, ['hola', 'buenas', 'hey', 'hi', 'hello', 'saludos'])) {
     return { text: `¡Hola! 😊 ¿Qué te gustaría saber sobre ${name}?` };
   }

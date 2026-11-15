@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   ASSIGNABLE_ROLES,
-  DEFAULT_LEVEL,
+  binaryOn,
+  defaultLevel,
   deleteUserData,
   sendPasswordReset,
   downloadPublishedCv,
@@ -329,7 +330,9 @@ function PermissionsModal({ user, onClose, onSaved }: { user: AppUser; onClose: 
   const [perms, setPerms] = useState<Permissions>({ ...(user.permissions ?? {}) });
   const [saving, setSaving] = useState(false);
   const groups = [...new Set(PERM_SECTIONS.map((s) => s.group))];
-  const setAll = (level: PermLevel) => setPerms(Object.fromEntries(PERM_SECTIONS.map((s) => [s.key, level])) as Permissions);
+  // "Aplicar a todo" respeta las filas de sí/no (las deja como estén)
+  const setAll = (level: PermLevel) =>
+    setPerms({ ...perms, ...Object.fromEntries(PERM_SECTIONS.filter((s) => !binaryOn(s.key)).map((s) => [s.key, level])) } as Permissions);
 
   const save = async () => {
     setSaving(true);
@@ -389,17 +392,25 @@ function PermissionsModal({ user, onClose, onSaved }: { user: AppUser; onClose: 
                   {PERM_SECTIONS.filter((s) => s.group === g).map((s) => (
                     <tr key={s.key} className="border-t border-neutral-200 dark:border-neutral-800">
                       <td className="px-3 py-2">{s.label}</td>
-                      {PERM_LEVELS.map((l) => (
-                        <td key={l} className="text-center">
-                          <input
-                            type="radio"
-                            name={`perm-${s.key}`}
-                            aria-label={`${s.label}: ${PERM_LABELS[l]}`}
-                            checked={(perms[s.key] ?? DEFAULT_LEVEL) === l}
-                            onChange={() => setPerms({ ...perms, [s.key]: l })}
-                          />
-                        </td>
-                      ))}
+                      {PERM_LEVELS.map((l) => {
+                        const on = binaryOn(s.key);
+                        // Filas de sí/no: solo "Sin acceso" y "permitido"
+                        if (on && l !== 'none' && l !== on) return <td key={l} className="text-center opacity-30">—</td>;
+                        return (
+                          <td key={l} className="text-center">
+                            <label className="inline-flex items-center gap-1">
+                              <input
+                                type="radio"
+                                name={`perm-${s.key}`}
+                                aria-label={`${s.label}: ${on && l === on ? 'Permitido' : PERM_LABELS[l]}`}
+                                checked={(perms[s.key] ?? defaultLevel(s.key)) === l}
+                                onChange={() => setPerms({ ...perms, [s.key]: l })}
+                              />
+                              {on && l === on && <span className="text-[10px] font-semibold text-emerald-600">Sí</span>}
+                            </label>
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </Fragment>

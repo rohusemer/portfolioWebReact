@@ -16,6 +16,11 @@ interface Props {
   sections?: SectionKey[];
   /** false en la vista previa del admin: no consulta Firestore */
   live?: boolean;
+  /**
+   * Edición en línea del sitio de un usuario (modo edición por permiso). Los cambios
+   * se envían al padre, que los guarda con su botón Guardar.
+   */
+  inlineEdit?: { levelOf: (s: PermSection) => PermLevel; onChange: (d: PortfolioData) => void };
 }
 
 const ALL: SectionKey[] = ['about', 'skills', 'experience', 'education', 'projects'];
@@ -37,16 +42,24 @@ const SECTION_TAB: Record<SectionKey, Tab[]> = {
   projects: ['projects'],
 };
 
-export default function PortfolioSections({ initialData, sections = ALL, live = true }: Props) {
+export default function PortfolioSections({ initialData, sections = ALL, live = true, inlineEdit }: Props) {
   const [data, setData] = useState(initialData);
   const [published, setPublished] = useState(initialData);
   const [editing, setEditing] = useState<SectionKey | null>(null);
   const [saving, setSaving] = useState(false);
   const session = useSession();
-  const canEdit = live && session.editMode && isStaff(session.role);
-  const dirty = canEdit && JSON.stringify(data) !== JSON.stringify(published);
-  const levelOf = (sec: PermSection): PermLevel => (session.role === 'owner' ? 'create' : (session.permissions[sec] ?? 'none'));
-  const mayEdit = (key: SectionKey) => can(session.role, session.permissions, SECTION_PERM[key], 'edit');
+  const ownerEdit = live && session.editMode && isStaff(session.role);
+  const canEdit = ownerEdit || Boolean(inlineEdit);
+  const dirty = ownerEdit && JSON.stringify(data) !== JSON.stringify(published);
+  const levelOf = (sec: PermSection): PermLevel =>
+    inlineEdit ? inlineEdit.levelOf(sec) : session.role === 'owner' ? 'create' : (session.permissions[sec] ?? 'none');
+  const mayEdit = (key: SectionKey) =>
+    inlineEdit ? ['edit', 'create'].includes(inlineEdit.levelOf(SECTION_PERM[key])) : can(session.role, session.permissions, SECTION_PERM[key], 'edit');
+  /** En el sitio del usuario los cambios suben al padre; en el portafolio se quedan aquí hasta Guardar. */
+  const update = (d: PortfolioData) => {
+    setData(d);
+    inlineEdit?.onChange(d);
+  };
 
   useEffect(() => setData(initialData), [initialData]);
 
@@ -90,7 +103,7 @@ export default function PortfolioSections({ initialData, sections = ALL, live = 
 
   return (
     <>
-      {canEdit && (
+      {ownerEdit && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-4 py-2 rounded-full shadow-2xl bg-neutral-900 text-white text-sm">
           <i className="fas fa-pen-to-square text-amber-400" />
           <span className="hidden sm:inline">Modo edición</span>
@@ -127,17 +140,21 @@ export default function PortfolioSections({ initialData, sections = ALL, live = 
         <aside className="fixed top-0 right-0 z-[60] h-full w-full max-w-md overflow-y-auto shadow-2xl bg-light-bg dark:bg-dark-bg text-dark-text dark:text-light-text border-l border-neutral-300 dark:border-neutral-700">
           <div className="sticky top-0 z-10 flex items-center gap-2 px-4 py-3 bg-light-bg/95 dark:bg-dark-bg/95 border-b border-neutral-300 dark:border-neutral-700">
             <h2 className="flex-1 font-bold">Editando sección</h2>
-            <button onClick={save} disabled={!dirty || saving} className="px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-40">
-              {saving ? 'Guardando…' : 'Guardar'}
-            </button>
+            {ownerEdit && (
+              <button onClick={save} disabled={!dirty || saving} className="px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-40">
+                {saving ? 'Guardando…' : 'Guardar'}
+              </button>
+            )}
             <button onClick={() => setEditing(null)} aria-label="Cerrar" className="w-8 h-8 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800">
               <i className="fas fa-xmark" />
             </button>
           </div>
           <div className="p-4">
-            <p className="text-xs opacity-70 mb-3">Los cambios se ven al instante en la página. Pulsa Guardar para publicarlos.</p>
+            <p className="text-xs opacity-70 mb-3">
+              Los cambios se ven al instante en la página. {ownerEdit ? 'Pulsa Guardar para publicarlos.' : 'Recuerda pulsar Guardar arriba.'}
+            </p>
             <Suspense fallback={<p>Cargando editor…</p>}>
-              <Editor key={editing} data={data} onChange={setData} initialTab={SECTION_TAB[editing][0]} only={SECTION_TAB[editing]} levelOf={levelOf} />
+              <Editor key={editing} data={data} onChange={update} initialTab={SECTION_TAB[editing][0]} only={SECTION_TAB[editing]} levelOf={levelOf} />
             </Suspense>
           </div>
         </aside>

@@ -121,8 +121,13 @@ export const PERM_SECTIONS = [
   { key: 'languages', label: 'Idiomas', group: 'Información' },
   { key: 'hobbies', label: 'Hobbies', group: 'Información' },
   { key: 'cv', label: 'Diseño del CV (constructor)', group: 'CV' },
-  { key: 'pdf', label: 'Descargar su CV en PDF', group: 'CV' },
+  { key: 'pdf', label: 'Descargar su CV en PDF', group: 'CV', binary: 'view' },
+  { key: 'liveEdit', label: 'Modo edición (editar su sitio directamente)', group: 'Sitio web', binary: 'edit' },
 ] as const;
+
+/** Secciones de sí/no: solo "Sin acceso" o el nivel indicado (que significa "permitido"). */
+export const binaryOn = (key: string): PermLevel | null =>
+  ((PERM_SECTIONS.find((s) => s.key === key) as { binary?: PermLevel } | undefined)?.binary ?? null);
 export type PermSection = (typeof PERM_SECTIONS)[number]['key'] | 'bot' | 'messages';
 export type Permissions = Partial<Record<PermSection, PermLevel>>;
 
@@ -131,8 +136,11 @@ const LEVEL_RANK: Record<PermLevel, number> = { none: 0, view: 1, edit: 2, creat
 /** Nivel por defecto de un usuario nuevo: ver y editar. */
 export const DEFAULT_LEVEL: PermLevel = 'edit';
 
+/** Valor por defecto de cada sección: ver y editar, salvo el modo edición (desactivado hasta que el admin lo active). */
+export const defaultLevel = (section: PermSection): PermLevel => (section === 'liveEdit' ? 'none' : section === 'pdf' ? 'view' : DEFAULT_LEVEL);
+
 /** Nivel efectivo de un usuario en una sección de su CV. */
-export const levelIn = (perms: Permissions | undefined, section: PermSection): PermLevel => perms?.[section] ?? DEFAULT_LEVEL;
+export const levelIn = (perms: Permissions | undefined, section: PermSection): PermLevel => perms?.[section] ?? defaultLevel(section);
 
 /** ¿Alcanza el nivel `need`? */
 export const atLeast = (level: PermLevel, need: PermLevel) => LEVEL_RANK[level] >= LEVEL_RANK[need];
@@ -256,6 +264,32 @@ export async function deleteUserData(uid: string, username?: string) {
   await batch.commit();
 }
 
+/**
+ * El propio usuario elimina su cuenta: confirma su identidad (contraseña o Google),
+ * borra sus datos de Firestore y por último su cuenta de acceso de Firebase Auth.
+ */
+export async function deleteMyAccount(password?: string) {
+  const mod = await import('firebase/auth');
+  const auth = mod.getAuth(getFirebaseApp()!);
+  const user = auth.currentUser;
+  if (!user) throw new Error('No hay sesión iniciada.');
+  // Reautenticación obligatoria para una acción irreversible
+  if (user.providerData.some((p) => p.providerId === 'password')) {
+    if (!password) throw new Error('Escribe tu contraseña para confirmar.');
+    await mod.reauthenticateWithCredential(user, mod.EmailAuthProvider.credential(user.email!, password));
+  } else {
+    await mod.reauthenticateWithPopup(user, new mod.GoogleAuthProvider());
+  }
+  const username = await fetchMyUsername(user.uid).catch(() => null);
+  const batch = writeBatch(db());
+  if (username) batch.delete(doc(db(), 'usernames', username));
+  batch.delete(doc(db(), 'profiles', user.uid));
+  batch.delete(doc(db(), 'roleRequests', user.uid));
+  batch.delete(doc(db(), 'users', user.uid));
+  await batch.commit();
+  await mod.deleteUser(user);
+}
+
 /** Envía al usuario el correo de Firebase para restablecer su contraseña. */
 export async function sendPasswordReset(email: string) {
   const { getAuth, sendPasswordResetEmail } = await import('firebase/auth');
@@ -318,8 +352,12 @@ const db = () => {
   return getFirestore(app);
 };
 
-export async function sendContactMessage(msg: Pick<ContactMessage, 'name' | 'email' | 'company' | 'message'>) {
+export async function sendContactMessage(
+  msg: Pick<ContactMessage, 'name' | 'email' | 'company' | 'message'>,
+  type: 'contact' | 'suggestion' = 'contact',
+) {
   await addDoc(collection(db(), 'messages'), {
+    type,
     name: msg.name.trim().slice(0, 100),
     email: msg.email.trim().slice(0, 150),
     company: msg.company.trim().slice(0, 100),
@@ -395,6 +433,8 @@ export interface PlanSettings {
   paymentLink: string; // enlace de pago (PayPal, PayPhone, Stripe Payment Link…)
   perks: string; // markdown
   contactEmail: string;
+  /** Avisar por correo de mensajes, sugerencias y solicitudes */
+  notifyByEmail: boolean;
 }
 
 export const DEFAULT_PLANS: PlanSettings = {
@@ -403,6 +443,7 @@ export const DEFAULT_PLANS: PlanSettings = {
   paymentLink: '',
   perks: '- Página pública de tu CV para compartir con reclutadores\n- Enlace directo de descarga de tu CV en PDF\n- Soporte prioritario',
   contactEmail: seedData.contact.email,
+  notifyByEmail: true,
 };
 
 export async function fetchPlans(): Promise<PlanSettings> {

@@ -30,7 +30,7 @@ export default function PlanSettingsCard() {
     >
       <summary className="font-bold cursor-pointer select-none">
         <i className="fas fa-gem text-violet-500 mr-2" />
-        Plan Premium y monetización
+        Plan Premium, monetización y avisos
         <span className="ml-2 text-xs font-normal opacity-70">
           {plans.premiumEnabled ? `${plans.premiumPrice}${plans.paymentLink ? ' · con enlace de pago' : ' · sin pago'}` : 'desactivado'}
         </span>
@@ -47,7 +47,16 @@ export default function PlanSettingsCard() {
           value={plans.paymentLink}
           onChange={(paymentLink) => setPlans({ ...plans, paymentLink })}
         />
-        <Field label="Correo para solicitudes" type="email" value={plans.contactEmail} onChange={(contactEmail) => setPlans({ ...plans, contactEmail })} />
+        <Field label="Tu correo (solicitudes y avisos)" type="email" value={plans.contactEmail} onChange={(contactEmail) => setPlans({ ...plans, contactEmail })} />
+        <label className="flex items-start gap-2 mb-3 text-sm md:col-span-2">
+          <input type="checkbox" className="mt-1" checked={plans.notifyByEmail} onChange={(e) => setPlans({ ...plans, notifyByEmail: e.target.checked })} />
+          <span>
+            Avisarme por correo de nuevos mensajes, sugerencias y solicitudes.
+            <span className="block text-xs opacity-60">
+              Se envía con FormSubmit (gratis). La primera vez te llegará un correo de activación de FormSubmit que debes confirmar.
+            </span>
+          </span>
+        </label>
         <div className="md:col-span-2">
           <MarkdownField label="Beneficios del plan" rows={4} value={plans.perks} onChange={(perks) => setPlans({ ...plans, perks })} />
         </div>

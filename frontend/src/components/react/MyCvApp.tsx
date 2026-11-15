@@ -83,6 +83,7 @@ function PersonalDashboard({ user, role, permissions, username }: { user: User; 
   const levelOf = (sec: PermSection) => (role === 'owner' ? 'create' : levelIn(permissions, sec));
   const canDownload = levelOf('pdf') !== 'none';
   const canDesign = atLeast(levelOf('cv'), 'edit');
+  const canLiveEdit = role === 'owner' || levelOf('liveEdit') !== 'none';
   const idleWarning = useIdleLogout(30);
   const [data, setData] = useState<PortfolioData | null>(null);
   const [saved, setSaved] = useState('');
@@ -273,11 +274,18 @@ function PersonalDashboard({ user, role, permissions, username }: { user: User; 
       ) : view === 'site' ? (
         <div className="flex-1 overflow-y-auto bg-neutral-200/60 dark:bg-neutral-900/60 p-4">
           <p className="max-w-5xl mx-auto mb-3 text-xs opacity-70">
-            <i className="fas fa-circle-info mr-1" /> Así se ve tu sitio web con tu información. Edítala en “Mi información” (el texto de
-            “Sobre mí (web)” está en Perfil). {role === 'premium' ? 'Puedes publicarlo desde “Mi cuenta”.' : 'Con el plan Premium puedes publicarlo y compartir el enlace.'}
+            <i className={`fas ${canLiveEdit ? 'fa-pen' : 'fa-circle-info'} mr-1`} />
+            {canLiveEdit
+              ? 'Modo edición activo: pulsa “Editar” en cualquier sección para cambiarla aquí mismo, y luego Guardar arriba.'
+              : 'Así se ve tu sitio web. Edita tu información en “Mi información” (el modo edición directo lo habilita el administrador).'}{' '}
+            {role === 'premium' ? 'Puedes publicarlo desde “Mi cuenta”.' : 'Con el plan Premium puedes publicarlo y compartir el enlace.'}
           </p>
           <div className="max-w-5xl mx-auto rounded-xl bg-light-bg dark:bg-dark-bg shadow">
-            <PortfolioSections initialData={data} live={false} />
+            <PortfolioSections
+              initialData={data}
+              live={false}
+              inlineEdit={canLiveEdit ? { levelOf, onChange: setData } : undefined}
+            />
           </div>
         </div>
       ) : view === 'account' ? (

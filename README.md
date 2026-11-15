@@ -28,6 +28,10 @@ que responde a reclutadores y les entrega el CV en PDF.
 | | |
 |---|---|
 | 🌐 **Portafolio público** | Perfil, habilidades, experiencia, estudios y proyectos en una línea de tiempo animada, con modo oscuro. |
+| 💡 **Buzón de sugerencias** | Desde el bot, anónimo o con nombre. Llega a *Mensajes* (filtro *Sugerencias*) y por correo. |
+| 🔔 **Avisos por correo** | Mensajes, sugerencias y solicitudes de permiso te llegan por email (FormSubmit, gratis). |
+| 🔍 **SEO** | El HTML se genera con tu contenido real de Firestore, con `sitemap.xml`, `robots.txt` y datos estructurados *Person* (JSON-LD). |
+| 🛡️ **Privacidad** | Página `/privacidad` (LOPDP Ecuador), consentimiento al registrarse y botón *Eliminar mi cuenta*. |
 | 🤖 **Bot asistente** | Responde sobre mi experiencia y tecnologías (*"¿sabe React?"*), **se nutre de mis repositorios públicos de GitHub** (lenguajes, proyectos destacados, el más reciente), **entrega el CV en PDF** y recoge mensajes de contacto. |
 | 🧩 **Constructor de CV** | Arrastrar y soltar bloques entre columnas, ocultarlos, renombrarlos, crear bloques propios y cambiar el color. Vista A4 en vivo con aviso si el contenido no cabe en una página. |
 | 📄 **PDF publicado** | Un clic en *"Guardar y publicar PDF"* genera el CV y lo deja listo para que el bot lo entregue. |
@@ -56,7 +60,8 @@ que responde a reclutadores y les entrega el CV en PDF.
 | `/` | Todos | Portafolio y bot. Con sesión de admin activa: **modo edición**. |
 | `/cv` | Todos | El CV en línea, con descarga en PDF (el publicado), impresión y exportación a Markdown. |
 | `/mi-cv` | Usuarios registrados | Su CV (información, diseño, PDF/Markdown) y **Mi cuenta** (solicitar permisos, página pública). |
-| `/perfil?u=<uid>` | Todos | CV público de un usuario Premium, con descarga en PDF. |
+| `/privacidad` | Todos | Política de privacidad y términos de uso. |
+| `/perfil?u=<usuario>` | Todos | CV público de un usuario Premium, con descarga en PDF. |
 | `/admin` | Solo el administrador | **Constructor de CV**, **Contenido web**, **Mensajes** y **Usuarios y permisos**. |
 
 En el navbar aparece la pestaña **Panel** (solo el administrador) o **Mi CV** (usuarios) con la sesión iniciada.
@@ -75,7 +80,7 @@ En el navbar aparece la pestaña **Panel** (solo el administrador) o **Mi CV** (
 
 ### Permisos por sección (CV de cada usuario)
 En **Usuarios y permisos → Permisos** el administrador decide qué puede hacer cada usuario en **su propio CV**
-(Perfil, Contacto, Experiencia, Estudios, Habilidades, Proyectos, Idiomas, Hobbies, Diseño del CV y Descargar PDF):
+(Perfil, Contacto, Experiencia, Estudios, Habilidades, Proyectos, Idiomas, Hobbies, Diseño del CV, Descargar PDF y **Modo edición**, que le permite editar su sitio directamente sobre la vista previa; viene desactivado):
 
 | Nivel | Qué permite |
 |---|---|
@@ -99,7 +104,7 @@ Las reglas de Firestore comprueban cada campo modificado contra estos permisos. 
 |---|---|
 | **Autenticación** | Firebase Auth: **correo y contraseña** o **Google (OAuth 2.0)**. Las contraseñas nunca pasan por nuestra base de datos: Firebase las guarda con hash **scrypt**. Exigimos mínimo 8 caracteres con letras y números, verificación de correo y recuperación por email. |
 | **Tokens** | Cada petición lleva un **ID token JWT firmado por Google (RS256)** que caduca en 1 h y se renueva solo. Firestore verifica la firma en el servidor. |
-| **Autorización** | [`firestore.rules`](firestore.rules): roles, validación de campos y tamaños, deny-by-default. Hay 46 pruebas automatizadas. |
+| **Autorización** | [`firestore.rules`](firestore.rules): roles, validación de campos y tamaños, deny-by-default. Hay 61 pruebas automatizadas. |
 | **Sesión** | Verificación de correo obligatoria antes de usar la cuenta (segundo paso del registro) y **cierre automático tras 30 min de inactividad** en los paneles. |
 | **Cookies / CSRF** | La sesión no usa cookies (el token vive en IndexedDB y se envía como `Authorization: Bearer`), así que no hay superficie de CSRF. |
 | **CORS** | El sitio es estático y habla directo con las APIs de Google, que gestionan su CORS. La API Flask heredada solo acepta los dominios del portafolio. |
@@ -138,7 +143,7 @@ Usuario ──► Google Sign-In (JWT) ──► Firestore: users/{uid}.role
 ```
 ├── firebase.json            # Hosting + reglas
 ├── firestore.rules          # Modelo de permisos por rol
-├── scripts/test-firestore-rules.mjs   # 46 pruebas de las reglas (emulador)
+├── scripts/test-firestore-rules.mjs   # 61 pruebas de las reglas (emulador)
 ├── frontend/
 │   ├── src/data/portfolio.json        # Contenido inicial (semilla)
 │   ├── src/lib/                       # Firebase, sesión, Markdown, PDF, cerebro del bot
@@ -153,7 +158,6 @@ Usuario ──► Google Sign-In (JWT) ──► Firestore: users/{uid}.role
 │   │   ├── NavPanelLink.tsx           # Pestaña "Panel" / "Mi CV" del navbar
 │   │   └── admin/                     # Panel: constructor, editor, mensajes, usuarios, solicitudes, planes
 │   └── src/pages/                     # /, /cv, /admin…
-└── backend/                 # API Flask heredada (no se usa en el despliegue)
 ```
 
 ## 🚀 Puesta en marcha
@@ -182,7 +186,8 @@ firebase deploy                  # build + hosting + reglas
 firebase deploy --only hosting   # solo el sitio
 ```
 
-> Los cambios de contenido y el PDF se publican **al instante** desde `/admin`. Solo hay que desplegar cuando cambia el código.
+> Los cambios de contenido y el PDF se publican **al instante** desde `/admin`. Para que **Google** vea el contenido nuevo, vuelve a
+> desplegar (`firebase deploy --only hosting`): el build lee tu portafolio desde Firestore y lo incluye en el HTML.
 
 ## 🧰 Scripts
 

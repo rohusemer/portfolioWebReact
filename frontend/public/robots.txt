@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /mi-cv
+
+Sitemap: https://portfoliowebsite-ccc81.web.app/sitemap-index.xml

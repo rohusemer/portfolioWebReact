@@ -119,7 +119,8 @@ service cloud.firestore {
           && request.resource.data.role in ['premium', 'user', 'blocked']
           && request.resource.data.get('permissions', {}) is map);
 
-      allow delete: if isOwner() && uid != ownerUid();
+      // El administrador elimina usuarios; cada usuario puede eliminar su propia cuenta
+      allow delete: if uid != ownerUid() && (isOwner() || (signedIn() && request.auth.uid == uid));
     }
 
     // ---------- Nombres de usuario únicos ----------
@@ -132,7 +133,7 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == name;
       allow update: if false;
-      allow delete: if isOwner();
+      allow delete: if isOwner() || (signedIn() && resource.data.uid == request.auth.uid);
     }
 
     // ---------- Solicitudes de permiso especial ----------
@@ -153,7 +154,7 @@ service cloud.firestore {
       allow update: if isOwner() && onlyChanges(['status', 'reviewedAt'])
         && request.resource.data.status in ['approved', 'rejected'];
 
-      allow delete: if isOwner();
+      allow delete: if isOwner() || (signedIn() && request.auth.uid == uid);
     }
 
     // ---------- CV de cada usuario ----------
@@ -166,19 +167,28 @@ service cloud.firestore {
       // debe estar verificado y cada cambio debe respetar sus permisos por sección.
       allow create: if signedIn() && request.auth.uid == uid && myRole() in ['owner', 'premium', 'user'];
       allow update: if signedIn() && request.auth.uid == uid && myRole() in ['owner', 'premium', 'user'] && verified() && profileUpdateOk();
-      allow delete: if isOwner();
+      allow delete: if isOwner() || (signedIn() && request.auth.uid == uid);
     }
 
-    // ---------- Mensajes del bot ----------
+    // ---------- Mensajes y sugerencias del bot ----------
     // Cualquiera puede CREAR uno (validado); solo el administrador los lee.
+    // Contacto: nombre y correo obligatorios. Sugerencia: anónima permitida.
+    function validEmail(e) {
+      return e is string && e.size() <= 150 && e.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
+    }
+
     match /messages/{msgId} {
-      allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'company', 'message', 'createdAt', 'read'])
-        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
-        && request.resource.data.email is string && request.resource.data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$') && request.resource.data.email.size() <= 150
+      allow create: if request.resource.data.keys().hasOnly(['type', 'name', 'email', 'company', 'message', 'createdAt', 'read'])
+        && request.resource.data.get('type', 'contact') in ['contact', 'suggestion']
+        && request.resource.data.name is string && request.resource.data.name.size() <= 100
+        && request.resource.data.email is string
         && request.resource.data.company is string && request.resource.data.company.size() <= 100
         && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 2000
         && request.resource.data.createdAt is string
-        && request.resource.data.read == false;
+        && request.resource.data.read == false
+        && (request.resource.data.get('type', 'contact') == 'suggestion'
+          ? (request.resource.data.email == '' || validEmail(request.resource.data.email))
+          : (request.resource.data.name.size() > 0 && validEmail(request.resource.data.email)));
       allow read, delete: if isOwner();
       allow update: if isOwner() && onlyChanges(['read']);
     }

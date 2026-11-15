@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { PortfolioData } from '../../lib/types';
 import { downloadPublishedCv, fetchCvPdfMeta, firebaseConfigured, loadPortfolioOnce, sendContactMessage } from '../../lib/firebase';
 import type { CvPdfMeta } from '../../lib/types';
+import { notifyOwner } from '../../lib/notify';
 import { fetchGithubInfo, githubUsername, type GithubInfo } from '../../lib/github';
 import { QUICK_REPLIES, openingMessages, reply, type BotAction } from '../../lib/botBrain';
 import { renderMarkdown } from '../../lib/markdown';
@@ -56,6 +57,7 @@ export default function ContactBot({ initialData }: { initialData: PortfolioData
   }, [open]);
 
   const lastContactIdx = msgs.map((m) => m.action).lastIndexOf('contact');
+  const lastSuggestIdx = msgs.map((m) => m.action).lastIndexOf('suggest');
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' });
@@ -120,6 +122,13 @@ export default function ContactBot({ initialData }: { initialData: PortfolioData
                 >
                   {m.from === 'bot' ? <div className="md" dangerouslySetInnerHTML={{ __html: renderMarkdown(m.text) }} /> : m.text}
                   {m.action === 'cv' && <CvDownload onDone={onDownloaded} />}
+                  {m.action === 'suggest' && i === lastSuggestIdx && (
+                    <SuggestionForm
+                      onSent={() =>
+                        setMsgs((prev) => [...prev, { from: 'bot', text: '¡Recibido! 🙌 Gracias por tu sugerencia, la leeremos con atención.' }])
+                      }
+                    />
+                  )}
                   {m.action === 'contact' && i === lastContactIdx && (
                     <ContactForm email={data.contact.email} onSent={onSent} />
                   )}
@@ -206,6 +215,7 @@ function ContactForm({ email, onSent }: { email: string; onSent: (name: string) 
     setState('sending');
     try {
       await sendContactMessage(f);
+      notifyOwner(`Nuevo mensaje de contacto de ${f.name}`, { Nombre: f.name, Correo: f.email, Empresa: f.company || '—', Mensaje: f.message });
       setState('sent');
       onSent(f.name.split(' ')[0]);
     } catch (err) {
@@ -223,6 +233,13 @@ function ContactForm({ email, onSent }: { email: string; onSent: (name: string) 
       <textarea required maxLength={2000} rows={3} placeholder="Mensaje *" className={cls} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} />
       <input tabIndex={-1} autoComplete="off" className="hidden" value={f.website} onChange={(e) => setF({ ...f, website: e.target.value })} aria-hidden="true" />
       {state === 'error' && <p className="text-xs text-red-500">No se pudo enviar. Intenta de nuevo o escribe a {email}.</p>}
+      <p className="text-[10px] opacity-60">
+        Al enviar aceptas la{' '}
+        <a href="/privacidad" target="_blank" rel="noopener" className="underline">
+          política de privacidad
+        </a>
+        .
+      </p>
       <button disabled={state === 'sending'} className="w-full rounded-lg bg-primary text-white py-1.5 font-semibold hover:bg-accent disabled:opacity-50">
         {state === 'sending' ? 'Enviando…' : 'Enviar mensaje'}
       </button>
@@ -292,5 +309,41 @@ function CvDownload({ onDone }: { onDone: () => void }) {
         </button>
       </div>
     </div>
+  );
+}
+
+/** Buzón de sugerencias: solo el texto es obligatorio. */
+function SuggestionForm({ onSent }: { onSent: () => void }) {
+  const [f, setF] = useState({ name: '', email: '', message: '', website: '' });
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  if (!firebaseConfigured || state === 'sent') return null;
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (f.website) return; // trampa para bots de spam
+    setState('sending');
+    try {
+      await sendContactMessage({ name: f.name, email: f.email, company: '', message: f.message }, 'suggestion');
+      notifyOwner('💡 Nueva sugerencia en tu portafolio', { Nombre: f.name || 'Anónimo', Correo: f.email || '—', Sugerencia: f.message });
+      setState('sent');
+      onSent();
+    } catch (err) {
+      console.error(err);
+      setState('error');
+    }
+  };
+
+  const cls = 'w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-sm';
+  return (
+    <form onSubmit={submit} className="mt-2 space-y-1.5">
+      <textarea required maxLength={2000} rows={3} placeholder="Tu sugerencia *" className={cls} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} />
+      <input maxLength={100} placeholder="Tu nombre (opcional)" className={cls} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+      <input type="email" maxLength={150} placeholder="Tu correo (opcional, por si quieres respuesta)" className={cls} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+      <input tabIndex={-1} autoComplete="off" className="hidden" value={f.website} onChange={(e) => setF({ ...f, website: e.target.value })} aria-hidden="true" />
+      {state === 'error' && <p className="text-xs text-red-500">No se pudo enviar. Inténtalo de nuevo.</p>}
+      <button disabled={state === 'sending'} className="w-full rounded-lg bg-amber-500 text-white py-1.5 font-semibold hover:bg-amber-600 disabled:opacity-50">
+        <i className="fas fa-lightbulb mr-1" /> {state === 'sending' ? 'Enviando…' : 'Enviar sugerencia'}
+      </button>
+    </form>
   );
 }

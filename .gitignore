@@ -94,3 +94,7 @@ vite.config.ts.timestamp-*
 
 # Local Netlify folder
 .netlify
+
+# Logs de los emuladores de Firebase
+firestore-debug.log
+ui-debug.log

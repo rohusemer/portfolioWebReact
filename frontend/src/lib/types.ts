@@ -132,6 +132,8 @@ export interface BotSettings {
 
 export interface ContactMessage {
   id: string;
+  /** contact = mensaje de contacto · suggestion = buzón de sugerencias */
+  type?: 'contact' | 'suggestion';
   name: string;
   email: string;
   company: string;

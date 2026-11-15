@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import {
   canPublishProfile,
+  deleteMyAccount,
   fetchMyRequest,
   fetchPlans,
   ROLE_LABELS,
@@ -12,6 +13,7 @@ import {
 } from '../../lib/firebase';
 import type { PortfolioData } from '../../lib/types';
 import Markdown from './Markdown';
+import { notifyOwner } from '../../lib/notify';
 
 interface Props {
   user: User;
@@ -52,7 +54,90 @@ export default function AccountPanel({ user, username, role, data, onTogglePubli
       ) : (
         plans && <RequestCard user={user} plans={plans} request={request} onSent={setRequest} />
       )}
+
+      {role !== 'owner' && <DeleteAccountCard user={user} />}
     </div>
+  );
+}
+
+/** Derecho de eliminación (LOPDP): el usuario borra su cuenta y todos sus datos. */
+function DeleteAccountCard({ user }: { user: User }) {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmText, setConfirmText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const isPassword = user.providerData.some((p) => p.providerId === 'password');
+
+  const remove = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await deleteMyAccount(password);
+      alert('Tu cuenta y todos tus datos fueron eliminados.');
+      location.href = '/';
+    } catch (e) {
+      const code = (e as { code?: string }).code ?? '';
+      setError(
+        code.includes('wrong-password') || code.includes('invalid-credential')
+          ? 'Contraseña incorrecta.'
+          : code.includes('popup-closed')
+            ? 'Cancelaste la confirmación con Google.'
+            : (e as Error).message,
+      );
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="rounded-xl p-4 border border-red-300 dark:border-red-900 bg-red-500/5">
+      <h3 className="font-bold mb-1 text-red-600">
+        <i className="fas fa-triangle-exclamation mr-2" />
+        Eliminar mi cuenta
+      </h3>
+      <p className="text-sm opacity-80 mb-3">
+        Borra tu cuenta, tu CV, tu sitio, tu nombre de usuario y tus solicitudes. <strong>No se puede deshacer.</strong> Descarga antes tu CV si
+        lo necesitas.
+      </p>
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="px-4 py-2 rounded-lg border border-red-500 text-red-600 text-sm font-semibold hover:bg-red-500 hover:text-white">
+          Quiero eliminar mi cuenta
+        </button>
+      ) : (
+        <div className="space-y-2">
+          {isPassword && (
+            <input
+              type="password"
+              placeholder="Tu contraseña"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
+            />
+          )}
+          <input
+            placeholder='Escribe "ELIMINAR" para confirmar'
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
+          />
+          {!isPassword && <p className="text-xs opacity-70">Se abrirá Google para confirmar que eres tú.</p>}
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <div className="flex gap-2">
+            <button
+              onClick={remove}
+              disabled={busy || confirmText.trim().toUpperCase() !== 'ELIMINAR' || (isPassword && !password)}
+              className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold disabled:opacity-40"
+            >
+              {busy ? 'Eliminando…' : 'Eliminar definitivamente'}
+            </button>
+            <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg text-sm">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -133,6 +218,12 @@ function RequestCard({
       const saved = await fetchMyRequest(user.uid);
       if (!saved) throw new Error('La solicitud no quedó registrada.');
       onSent(saved);
+      notifyOwner(`Solicitud de permiso Premium de ${r.name || r.email}`, {
+        Usuario: r.name,
+        Correo: r.email,
+        Mensaje: r.message || '—',
+        'Referencia de pago': r.paymentRef || '—',
+      });
       setState('idle');
     } catch (e) {
       setErrMsg((e as Error).message);

@@ -35,6 +35,7 @@ export default function AuthForm({ initialMode = 'login', onDone }: { initialMod
   const [info, setInfo] = useState('');
   const [photo, setPhoto] = useState('');
   const [username, setUsername] = useState('');
+  const [accepted, setAccepted] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('empty');
 
   /**
@@ -95,6 +96,7 @@ export default function AuthForm({ initialMode = 'login', onDone }: { initialMod
       if (issue) return setError(issue);
       if (password !== confirm) return setError('Las contraseñas no coinciden.');
       if (!photo) return setError('Agrega una foto de perfil: se mostrará en tu CV y en tu sitio web.');
+      if (!accepted) return setError('Debes aceptar la política de privacidad para crear tu cuenta.');
       return run(async () => {
         const { mod, auth: a } = await auth();
         const { user } = await mod.createUserWithEmailAndPassword(a, email.trim(), password);
@@ -154,6 +156,15 @@ export default function AuthForm({ initialMode = 'login', onDone }: { initialMod
             </svg>
             {mode === 'register' ? 'Registrarme con Google' : 'Continuar con Google'}
           </button>
+          {mode === 'register' && (
+            <p className="mt-1.5 text-[11px] text-center opacity-60 text-dark-text dark:text-light-text">
+              Al registrarte con Google aceptas la{' '}
+              <a href="/privacidad" target="_blank" rel="noopener" className="underline">
+                política de privacidad
+              </a>
+              .
+            </p>
+          )}
           <div className="flex items-center gap-3 my-4 text-xs opacity-60 text-dark-text dark:text-light-text">
             <span className="flex-1 h-px bg-current opacity-30" />o con tu correo<span className="flex-1 h-px bg-current opacity-30" />
           </div>
@@ -222,6 +233,19 @@ export default function AuthForm({ initialMode = 'login', onDone }: { initialMod
               {password ? (passwordIssues(password) ?? 'Contraseña segura ✔') : 'Mínimo 8 caracteres, con letras y números.'}
             </p>
           </>
+        )}
+
+        {mode === 'register' && (
+          <label className="flex items-start gap-2 text-xs text-dark-text dark:text-light-text">
+            <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="mt-0.5" required />
+            <span>
+              Acepto la{' '}
+              <a href="/privacidad" target="_blank" rel="noopener" className="text-primary underline">
+                política de privacidad y términos
+              </a>{' '}
+              y el tratamiento de mis datos para usar la plataforma.
+            </span>
+          </label>
         )}
 
         {error && <p className="text-sm text-red-500">{error}</p>}
